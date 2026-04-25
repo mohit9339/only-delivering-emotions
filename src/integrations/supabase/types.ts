@@ -138,6 +138,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_guest_order: {
+        Args: {
+          p_customer_name: string
+          p_customer_phone: string
+          p_delivery_type: string
+          p_drop_location: string
+          p_item_type: string
+          p_notes?: string
+          p_pickup_location: string
+        }
+        Returns: {
+          id: string
+          order_code: string
+        }[]
+      }
       generate_order_code: { Args: never; Returns: string }
       has_role: {
         Args: {
