@@ -87,18 +87,18 @@ export function Hero() {
               height={1024}
               className="animate-float w-full"
             />
-            <div className="mt-2 grid grid-cols-3 gap-2 text-center text-white">
+            <div className="mt-2 grid grid-cols-3 gap-2 text-center text-primary">
               <div className="rounded-xl bg-white/15 p-3 backdrop-blur-md">
-                <div className="font-[Sora] text-lg font-bold text-white">30m</div>
-                <div className="text-[10px] uppercase tracking-wider text-white/90">Avg ETA</div>
+                <div className="font-[Sora] text-lg font-bold text-primary">30m</div>
+                <div className="text-[10px] uppercase tracking-wider text-primary/90">Avg ETA</div>
               </div>
               <div className="rounded-xl bg-white/15 p-3 backdrop-blur-md">
-                <div className="font-[Sora] text-lg font-bold text-white">10k+</div>
-                <div className="text-[10px] uppercase tracking-wider text-white/90">Deliveries</div>
+                <div className="font-[Sora] text-lg font-bold text-primary">10k+</div>
+                <div className="text-[10px] uppercase tracking-wider text-primary/90">Deliveries</div>
               </div>
               <div className="rounded-xl bg-white/15 p-3 backdrop-blur-md">
-                <div className="font-[Sora] text-lg font-bold text-white">4.9★</div>
-                <div className="text-[10px] uppercase tracking-wider text-white/90">Rating</div>
+                <div className="font-[Sora] text-lg font-bold text-primary">4.9★</div>
+                <div className="text-[10px] uppercase tracking-wider text-primary/90">Rating</div>
               </div>
             </div>
           </div>
