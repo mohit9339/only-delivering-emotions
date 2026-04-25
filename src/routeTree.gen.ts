@@ -9,38 +9,153 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as BookRouteImport } from './routes/book'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TrackIndexRouteImport } from './routes/track.index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as TrackCodeRouteImport } from './routes/track.$code'
+import { Route as PartnerRegisterRouteImport } from './routes/partner.register'
+import { Route as PartnerLoginRouteImport } from './routes/partner.login'
+import { Route as PartnerDashboardRouteImport } from './routes/partner.dashboard'
+import { Route as AdminLoginRouteImport } from './routes/admin.login'
 
+const BookRoute = BookRouteImport.update({
+  id: '/book',
+  path: '/book',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TrackIndexRoute = TrackIndexRouteImport.update({
+  id: '/track/',
+  path: '/track/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackCodeRoute = TrackCodeRouteImport.update({
+  id: '/track/$code',
+  path: '/track/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnerRegisterRoute = PartnerRegisterRouteImport.update({
+  id: '/partner/register',
+  path: '/partner/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnerLoginRoute = PartnerLoginRouteImport.update({
+  id: '/partner/login',
+  path: '/partner/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnerDashboardRoute = PartnerDashboardRouteImport.update({
+  id: '/partner/dashboard',
+  path: '/partner/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin/login',
+  path: '/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/book': typeof BookRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/partner/dashboard': typeof PartnerDashboardRoute
+  '/partner/login': typeof PartnerLoginRoute
+  '/partner/register': typeof PartnerRegisterRoute
+  '/track/$code': typeof TrackCodeRoute
+  '/admin/': typeof AdminIndexRoute
+  '/track/': typeof TrackIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/book': typeof BookRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/partner/dashboard': typeof PartnerDashboardRoute
+  '/partner/login': typeof PartnerLoginRoute
+  '/partner/register': typeof PartnerRegisterRoute
+  '/track/$code': typeof TrackCodeRoute
+  '/admin': typeof AdminIndexRoute
+  '/track': typeof TrackIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/book': typeof BookRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/partner/dashboard': typeof PartnerDashboardRoute
+  '/partner/login': typeof PartnerLoginRoute
+  '/partner/register': typeof PartnerRegisterRoute
+  '/track/$code': typeof TrackCodeRoute
+  '/admin/': typeof AdminIndexRoute
+  '/track/': typeof TrackIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/book'
+    | '/admin/login'
+    | '/partner/dashboard'
+    | '/partner/login'
+    | '/partner/register'
+    | '/track/$code'
+    | '/admin/'
+    | '/track/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/book'
+    | '/admin/login'
+    | '/partner/dashboard'
+    | '/partner/login'
+    | '/partner/register'
+    | '/track/$code'
+    | '/admin'
+    | '/track'
+  id:
+    | '__root__'
+    | '/'
+    | '/book'
+    | '/admin/login'
+    | '/partner/dashboard'
+    | '/partner/login'
+    | '/partner/register'
+    | '/track/$code'
+    | '/admin/'
+    | '/track/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BookRoute: typeof BookRoute
+  AdminLoginRoute: typeof AdminLoginRoute
+  PartnerDashboardRoute: typeof PartnerDashboardRoute
+  PartnerLoginRoute: typeof PartnerLoginRoute
+  PartnerRegisterRoute: typeof PartnerRegisterRoute
+  TrackCodeRoute: typeof TrackCodeRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  TrackIndexRoute: typeof TrackIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/book': {
+      id: '/book'
+      path: '/book'
+      fullPath: '/book'
+      preLoaderRoute: typeof BookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +163,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/track/': {
+      id: '/track/'
+      path: '/track'
+      fullPath: '/track/'
+      preLoaderRoute: typeof TrackIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/track/$code': {
+      id: '/track/$code'
+      path: '/track/$code'
+      fullPath: '/track/$code'
+      preLoaderRoute: typeof TrackCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partner/register': {
+      id: '/partner/register'
+      path: '/partner/register'
+      fullPath: '/partner/register'
+      preLoaderRoute: typeof PartnerRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partner/login': {
+      id: '/partner/login'
+      path: '/partner/login'
+      fullPath: '/partner/login'
+      preLoaderRoute: typeof PartnerLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partner/dashboard': {
+      id: '/partner/dashboard'
+      path: '/partner/dashboard'
+      fullPath: '/partner/dashboard'
+      preLoaderRoute: typeof PartnerDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BookRoute: BookRoute,
+  AdminLoginRoute: AdminLoginRoute,
+  PartnerDashboardRoute: PartnerDashboardRoute,
+  PartnerLoginRoute: PartnerLoginRoute,
+  PartnerRegisterRoute: PartnerRegisterRoute,
+  TrackCodeRoute: TrackCodeRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  TrackIndexRoute: TrackIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -9,7 +9,7 @@ import { HowItWorksSection } from "@/components/sections/HowItWorksSection";
 import { RevenueSection } from "@/components/sections/RevenueSection";
 import { TargetSection } from "@/components/sections/TargetSection";
 import { RoadmapSection } from "@/components/sections/RoadmapSection";
-import { BookingSection } from "@/components/sections/BookingSection";
+import { EarnBanner } from "@/components/EarnBanner";
 import { CTASection } from "@/components/sections/CTASection";
 import { Footer } from "@/components/Footer";
 import { Toaster } from "@/components/ui/sonner";
@@ -46,10 +46,10 @@ function Index() {
         <ServicesSection />
         <WhyNowSection />
         <HowItWorksSection />
+        <EarnBanner />
         <RevenueSection />
         <TargetSection />
         <RoadmapSection />
-        <BookingSection />
         <CTASection />
       </main>
       <Footer />

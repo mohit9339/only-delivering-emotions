@@ -1,0 +1,318 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  Loader2,
+  Bike,
+  MapPin,
+  Package,
+  LogOut,
+  CheckCircle2,
+  Truck,
+  Wallet,
+} from "lucide-react";
+
+export const Route = createFileRoute("/partner/dashboard")({
+  head: () => ({
+    meta: [{ title: "Rider Dashboard — ONLY" }],
+  }),
+  component: PartnerDashboard,
+});
+
+interface Order {
+  id: string;
+  order_code: string;
+  pickup_location: string;
+  drop_location: string;
+  item_type: string;
+  delivery_type: string;
+  status: string;
+  rider_id: string | null;
+  customer_name: string;
+  customer_phone: string;
+  estimated_delivery_at: string | null;
+}
+
+interface Rider {
+  id: string;
+  name: string;
+  status: string;
+  vehicle_type: string;
+}
+
+function PartnerDashboard() {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const [rider, setRider] = useState<Rider | null>(null);
+  const [available, setAvailable] = useState<Order[]>([]);
+  const [mine, setMine] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      navigate({ to: "/partner/login" });
+      return;
+    }
+    refresh();
+    const ch = supabase
+      .channel("rider-orders")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "orders" },
+        () => refresh()
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authLoading]);
+
+  async function refresh() {
+    if (!user) return;
+    const { data: rd } = await supabase
+      .from("riders")
+      .select("id,name,status,vehicle_type")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!rd) {
+      setLoading(false);
+      return;
+    }
+    setRider(rd as Rider);
+
+    const [{ data: avail }, { data: assigned }] = await Promise.all([
+      supabase
+        .from("orders")
+        .select("*")
+        .is("rider_id", null)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(20),
+      supabase
+        .from("orders")
+        .select("*")
+        .eq("rider_id", rd.id)
+        .order("created_at", { ascending: false })
+        .limit(20),
+    ]);
+    setAvailable((avail ?? []) as Order[]);
+    setMine((assigned ?? []) as Order[]);
+    setLoading(false);
+  }
+
+  async function acceptOrder(id: string) {
+    if (!rider) return;
+    const { error } = await supabase
+      .from("orders")
+      .update({ rider_id: rider.id, status: "assigned" })
+      .eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Order accepted!");
+    refresh();
+  }
+
+  async function updateStatus(id: string, status: string) {
+    const { error } = await supabase.from("orders").update({ status }).eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success(`Marked ${status.replace("_", " ")}`);
+    refresh();
+  }
+
+  async function logout() {
+    await supabase.auth.signOut();
+    navigate({ to: "/" });
+  }
+
+  if (authLoading || loading) {
+    return (
+      <Shell>
+        <div className="flex items-center justify-center py-20 text-muted-foreground">
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading dashboard…
+        </div>
+      </Shell>
+    );
+  }
+
+  if (!rider) {
+    return (
+      <Shell>
+        <div className="mx-auto max-w-md text-center">
+          <h2 className="font-[Sora] text-2xl font-bold">No rider profile</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Complete signup to start accepting deliveries.
+          </p>
+          <Button asChild className="mt-5 bg-gradient-cta text-white">
+            <Link to="/partner/register">Sign up as a rider</Link>
+          </Button>
+        </div>
+      </Shell>
+    );
+  }
+
+  const earnings = mine.filter((o) => o.status === "delivered").length * 60;
+
+  return (
+    <Shell>
+      <div className="mx-auto max-w-6xl">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-gradient-cta p-6 text-white shadow-glow">
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
+              <Bike className="h-7 w-7" />
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-wider text-white/85">Welcome back</div>
+              <div className="font-[Sora] text-2xl font-bold text-white">{rider.name}</div>
+              <div className="text-xs text-white/85">
+                {rider.vehicle_type} ·{" "}
+                <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold uppercase">
+                  {rider.status}
+                </span>
+              </div>
+            </div>
+          </div>
+          <Button onClick={logout} variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+            <LogOut className="mr-1.5 h-4 w-4" /> Logout
+          </Button>
+        </div>
+
+        {rider.status === "pending" && (
+          <div className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm text-primary-deep">
+            Your account is pending admin approval. You can preview the dashboard meanwhile.
+          </div>
+        )}
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          <Stat icon={<Package className="h-5 w-5" />} label="Active" value={mine.filter((m) => !["delivered", "cancelled"].includes(m.status)).length} />
+          <Stat icon={<CheckCircle2 className="h-5 w-5" />} label="Delivered" value={mine.filter((m) => m.status === "delivered").length} />
+          <Stat icon={<Wallet className="h-5 w-5" />} label="Est. Earnings" value={`₹${earnings}`} />
+        </div>
+
+        <Section title="My Deliveries" subtitle="Update status as you progress">
+          {mine.length === 0 ? (
+            <Empty text="No assigned deliveries yet." />
+          ) : (
+            <div className="grid gap-3">
+              {mine.map((o) => (
+                <OrderCard key={o.id} order={o} onUpdate={(s) => updateStatus(o.id, s)} />
+              ))}
+            </div>
+          )}
+        </Section>
+
+        <Section title="Available Orders" subtitle="Tap to accept and start earning">
+          {available.length === 0 ? (
+            <Empty text="No orders waiting right now. Check back in a moment." />
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {available.map((o) => (
+                <div key={o.id} className="rounded-2xl border border-border bg-card p-4 shadow-soft">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs text-muted-foreground">{o.order_code}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${o.delivery_type === "emergency" ? "bg-primary text-white" : "bg-secondary text-secondary-foreground"}`}>
+                      {o.delivery_type}
+                    </span>
+                  </div>
+                  <div className="mt-3 space-y-1.5 text-sm">
+                    <div className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 text-primary" /><span className="truncate">{o.pickup_location}</span></div>
+                    <div className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 text-primary-deep" /><span className="truncate">{o.drop_location}</span></div>
+                    <div className="flex items-center gap-2 text-muted-foreground"><Package className="h-3.5 w-3.5" />{o.item_type}</div>
+                  </div>
+                  <Button onClick={() => acceptOrder(o.id)} className="mt-4 w-full bg-gradient-cta text-white">
+                    Accept Order
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+      </div>
+    </Shell>
+  );
+}
+
+function OrderCard({ order, onUpdate }: { order: Order; onUpdate: (s: string) => void }) {
+  const next: Record<string, { label: string; status: string; icon: React.ElementType }> = {
+    assigned: { label: "Mark Picked Up", status: "picked", icon: Package },
+    picked: { label: "Start Transit", status: "in_transit", icon: Truck },
+    in_transit: { label: "Mark Delivered", status: "delivered", icon: CheckCircle2 },
+  };
+  const action = next[order.status];
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-soft">
+      <div className="flex items-center justify-between">
+        <span className="font-mono text-xs text-muted-foreground">{order.order_code}</span>
+        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-primary-deep">
+          {order.status.replace("_", " ")}
+        </span>
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+        <div className="space-y-1.5 text-sm">
+          <div className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 text-primary" /><span className="truncate">{order.pickup_location}</span></div>
+          <div className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 text-primary-deep" /><span className="truncate">{order.drop_location}</span></div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Package className="h-3.5 w-3.5" /> {order.item_type} · {order.customer_name} · {order.customer_phone}
+          </div>
+        </div>
+        {action && (
+          <Button onClick={() => onUpdate(action.status)} className="bg-gradient-cta text-white">
+            <action.icon className="mr-1 h-4 w-4" /> {action.label}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">{icon}</div>
+      <div>
+        <div className="text-xs uppercase tracking-wider text-muted-foreground">{label}</div>
+        <div className="font-[Sora] text-xl font-bold text-foreground">{value}</div>
+      </div>
+    </div>
+  );
+}
+
+function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+  return (
+    <section className="mt-10">
+      <div className="mb-4">
+        <h2 className="font-[Sora] text-xl font-bold text-foreground">{title}</h2>
+        {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Empty({ text }: { text: string }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+      {text}
+    </div>
+  );
+}
+
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main className="pt-28 pb-16">
+        <div className="px-5 lg:px-8">{children}</div>
+      </main>
+      <Footer />
+      <Toaster position="top-center" richColors />
+    </div>
+  );
+}

@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Logo } from "./Logo";
 import { Button } from "./ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Bike } from "lucide-react";
 
 const links = [
-  { href: "#solution", label: "Solution" },
-  { href: "#services", label: "Services" },
-  { href: "#how", label: "How it works" },
-  { href: "#pricing", label: "Pricing" },
-  { href: "#book", label: "Book" },
-];
+  { to: "/", label: "Home" },
+  { to: "/track", label: "Track Order" },
+  { to: "/partner/login", label: "Riders" },
+  { to: "/admin/login", label: "Admin" },
+] as const;
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -30,32 +30,42 @@ export function Header() {
           : "bg-transparent"
       }`}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5 lg:px-8">
-        <a href="#top" className="shrink-0">
-          <Logo />
-        </a>
-        <nav className="hidden items-center gap-8 md:flex">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3 lg:px-8">
+        <Link to="/" className="shrink-0 flex items-center gap-2">
+          <Logo size={36} />
+        </Link>
+        <nav className="hidden items-center gap-7 md:flex">
           {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
+            <Link
+              key={l.to}
+              to={l.to}
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+              activeProps={{ className: "text-primary" }}
+              activeOptions={{ exact: l.to === "/" }}
             >
               {l.label}
-            </a>
+            </Link>
           ))}
         </nav>
         <div className="hidden items-center gap-2 md:flex">
-          <Button variant="ghost" size="sm">
-            Login
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/partner/register">
+              <Bike className="mr-1.5 h-4 w-4" /> Become a Rider
+            </Link>
           </Button>
-          <Button asChild size="sm" className="bg-gradient-cta text-white shadow-soft hover:opacity-95">
-            <a href="#book">Book Delivery</a>
+          <Button
+            asChild
+            size="sm"
+            className="bg-gradient-cta text-white shadow-soft hover:opacity-95"
+          >
+            <Link to="/book">Book Delivery</Link>
           </Button>
         </div>
         <button
           aria-label="Menu"
-          className="rounded-lg p-2 text-foreground md:hidden"
+          className={`rounded-lg p-2 md:hidden ${
+            scrolled ? "text-foreground" : "text-foreground"
+          }`}
           onClick={() => setOpen((v) => !v)}
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -65,17 +75,22 @@ export function Header() {
         <div className="border-t border-border/60 bg-background md:hidden">
           <div className="flex flex-col gap-1 px-5 py-4">
             {links.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
+              <Link
+                key={l.to}
+                to={l.to}
                 onClick={() => setOpen(false)}
                 className="rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
               >
                 {l.label}
-              </a>
+              </Link>
             ))}
-            <Button asChild className="mt-2 bg-gradient-cta text-white">
-              <a href="#book" onClick={() => setOpen(false)}>Book Delivery</a>
+            <Button asChild variant="outline" className="mt-2">
+              <Link to="/partner/register" onClick={() => setOpen(false)}>
+                <Bike className="mr-1.5 h-4 w-4" /> Become a Rider
+              </Link>
+            </Button>
+            <Button asChild className="bg-gradient-cta text-white">
+              <Link to="/book" onClick={() => setOpen(false)}>Book Delivery</Link>
             </Button>
           </div>
         </div>

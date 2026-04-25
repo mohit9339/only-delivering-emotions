@@ -7,7 +7,13 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-5 py-14 lg:px-8">
         <div className="grid gap-10 md:grid-cols-4">
           <div className="md:col-span-2">
-            <Logo variant="light" />
+            <div className="flex items-center gap-3">
+              <Logo size={44} />
+              <div>
+                <div className="font-[Sora] text-xl font-extrabold text-background">ONLY</div>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-background/60">Delivering Emotions</div>
+              </div>
+            </div>
             <p className="mt-4 max-w-sm text-sm text-background/70">
               ONLY is a hyperlocal personal delivery service built for the
               moments that matter. Because small things carry big emotions.

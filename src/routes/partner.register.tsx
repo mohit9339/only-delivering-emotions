@@ -1,0 +1,203 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { Bike, ShieldCheck, Wallet } from "lucide-react";
+
+export const Route = createFileRoute("/partner/register")({
+  head: () => ({
+    meta: [
+      { title: "Become a Delivery Partner — ONLY" },
+      { name: "description", content: "Earn flexible income with ONLY. Sign up in minutes — phone OTP, no paperwork." },
+      { property: "og:title", content: "Become a Delivery Partner — ONLY" },
+      { property: "og:description", content: "Flexible hours, weekly payouts, peak-hour bonuses." },
+    ],
+  }),
+  component: PartnerRegister,
+});
+
+function PartnerRegister() {
+  const navigate = useNavigate();
+  const [step, setStep] = useState<"form" | "otp">("form");
+  const [submitting, setSubmitting] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [profile, setProfile] = useState({
+    name: "",
+    email: "",
+    vehicle_type: "Bike",
+    city: "",
+  });
+
+  const sendOtp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const fd = new FormData(e.currentTarget);
+    const p = String(fd.get("phone") ?? "").trim();
+    setPhone(p);
+    setProfile({
+      name: String(fd.get("name") ?? "").trim(),
+      email: String(fd.get("email") ?? "").trim(),
+      vehicle_type: String(fd.get("vehicle_type") ?? "Bike"),
+      city: String(fd.get("city") ?? "").trim(),
+    });
+    const { error } = await supabase.auth.signInWithOtp({ phone: p });
+    setSubmitting(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("OTP sent! Check your phone.");
+    setStep("otp");
+  };
+
+  const verifyOtp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const fd = new FormData(e.currentTarget);
+    const token = String(fd.get("otp") ?? "").trim();
+    const { data, error } = await supabase.auth.verifyOtp({ phone, token, type: "sms" });
+    if (error || !data.user) {
+      toast.error(error?.message ?? "Invalid code");
+      setSubmitting(false);
+      return;
+    }
+    // Create rider profile
+    const { error: insertError } = await supabase.from("riders").insert({
+      user_id: data.user.id,
+      name: profile.name,
+      email: profile.email || null,
+      phone,
+      vehicle_type: profile.vehicle_type,
+      city: profile.city,
+    });
+    if (insertError) {
+      console.error(insertError);
+      toast.error("Could not save profile: " + insertError.message);
+      setSubmitting(false);
+      return;
+    }
+    // Assign rider role
+    await supabase.from("user_roles").insert({ user_id: data.user.id, role: "rider" });
+    toast.success("Welcome to ONLY!");
+    navigate({ to: "/partner/dashboard" });
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main className="pt-24">
+        <section className="bg-gradient-hero py-12 lg:py-16">
+          <div className="mx-auto max-w-7xl px-5 lg:px-8">
+            <div className="max-w-2xl">
+              <span className="inline-block rounded-full bg-white/15 px-3 py-1 text-xs font-medium uppercase tracking-wider text-white backdrop-blur">
+                Earn with ONLY
+              </span>
+              <h1 className="mt-4 font-[Sora] text-3xl font-extrabold text-white sm:text-4xl lg:text-5xl">
+                Become a Delivery Partner
+              </h1>
+              <p className="mt-3 text-white/95">
+                Flexible hours, weekly payouts, peak-hour bonuses. Sign up with your
+                phone — no paperwork, no waiting.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-12 lg:py-16">
+          <div className="mx-auto grid max-w-7xl gap-10 px-5 lg:grid-cols-[1fr_1.2fr] lg:px-8">
+            <div className="space-y-4">
+              {[
+                { icon: Wallet, title: "Weekly payouts", desc: "Earn daily, paid every Monday — directly to your bank." },
+                { icon: ShieldCheck, title: "Insured & supported", desc: "Accident insurance and 24/7 partner helpline." },
+                { icon: Bike, title: "Any vehicle", desc: "Bicycle, scooter, motorcycle — all welcome." },
+              ].map((b) => (
+                <div key={b.title} className="flex gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <b.icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-foreground">{b.title}</div>
+                    <div className="text-sm text-muted-foreground">{b.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {step === "form" ? (
+              <form onSubmit={sendOtp} className="rounded-3xl border border-border bg-card p-6 shadow-card sm:p-8">
+                <h2 className="font-[Sora] text-xl font-bold text-foreground">Tell us about yourself</h2>
+                <p className="mt-1 text-sm text-muted-foreground">We'll send a one-time code to verify your phone.</p>
+                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                  <Field label="Full name" name="name" required placeholder="Rahul Sharma" />
+                  <Field label="Phone (with country code)" name="phone" type="tel" required placeholder="+919876543210" />
+                  <Field label="Email (optional)" name="email" type="email" placeholder="rahul@example.com" />
+                  <Field label="City" name="city" required placeholder="Bengaluru" />
+                  <div className="sm:col-span-2">
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Vehicle type
+                    </Label>
+                    <select
+                      name="vehicle_type"
+                      defaultValue="Bike"
+                      required
+                      className="mt-1.5 h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
+                    >
+                      <option>Bicycle</option>
+                      <option>Bike</option>
+                      <option>Scooter</option>
+                      <option>Car</option>
+                    </select>
+                  </div>
+                </div>
+                <Button type="submit" disabled={submitting} size="lg" className="mt-6 w-full bg-gradient-cta text-white">
+                  {submitting ? "Sending OTP…" : "Send OTP"}
+                </Button>
+                <p className="mt-3 text-center text-xs text-muted-foreground">
+                  Already a rider? <Link to="/partner/login" className="text-primary underline">Login</Link>
+                </p>
+              </form>
+            ) : (
+              <form onSubmit={verifyOtp} className="rounded-3xl border border-border bg-card p-6 shadow-card sm:p-8">
+                <h2 className="font-[Sora] text-xl font-bold text-foreground">Verify your phone</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  We sent a 6-digit code to <strong>{phone}</strong>.
+                </p>
+                <div className="mt-5">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">OTP</Label>
+                  <Input name="otp" required maxLength={6} className="mt-1.5 h-12 rounded-xl text-center font-mono text-xl tracking-[0.5em]" />
+                </div>
+                <Button type="submit" disabled={submitting} size="lg" className="mt-6 w-full bg-gradient-cta text-white">
+                  {submitting ? "Verifying…" : "Verify & Join"}
+                </Button>
+                <button
+                  type="button"
+                  className="mt-3 block w-full text-center text-xs text-muted-foreground hover:text-primary"
+                  onClick={() => setStep("form")}
+                >
+                  Wrong number? Go back
+                </button>
+              </form>
+            )}
+          </div>
+        </section>
+      </main>
+      <Footer />
+      <Toaster position="top-center" richColors />
+    </div>
+  );
+}
+
+function Field({ label, ...rest }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <div>
+      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</Label>
+      <Input {...rest} className="mt-1.5 h-11 rounded-xl" />
+    </div>
+  );
+}
