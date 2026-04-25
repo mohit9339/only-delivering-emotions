@@ -55,7 +55,7 @@ function BookPage() {
       p_drop_location: String(fd.get("drop") ?? "").trim(),
       p_item_type: item,
       p_delivery_type: speed,
-      p_notes: String(fd.get("notes") ?? "").trim() || null,
+      p_notes: String(fd.get("notes") ?? "").trim() || undefined,
     };
 
     const { data, error } = await supabase.rpc("create_guest_order", payload);

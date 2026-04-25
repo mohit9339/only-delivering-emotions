@@ -184,7 +184,7 @@ function PartnerDashboard() {
         </div>
 
         {rider.status === "pending" && (
-          <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <div className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm text-primary-deep">
             Your account is pending admin approval. You can preview the dashboard meanwhile.
           </div>
         )}
