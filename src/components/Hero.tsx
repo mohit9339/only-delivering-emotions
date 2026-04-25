@@ -34,30 +34,36 @@ export function Hero() {
             <Button
               asChild
               size="lg"
-              className="bg-white text-primary-deep shadow-glow hover:bg-white/95"
+              className="group relative h-12 overflow-hidden rounded-full bg-gradient-to-r from-primary to-primary-deep px-7 text-base font-semibold text-primary-foreground shadow-[0_10px_30px_-10px_oklch(0.62_0.12_180/0.6)] ring-1 ring-primary/30 transition-all hover:shadow-[0_14px_40px_-10px_oklch(0.62_0.12_180/0.75)] hover:-translate-y-0.5"
             >
               <Link to="/book">
-                Book Delivery <ArrowRight className="ml-1.5 h-4 w-4" />
+                <span className="relative z-10 flex items-center">
+                  Book Delivery
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </span>
+                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
               </Link>
             </Button>
             <Button
               asChild
               size="lg"
               variant="outline"
-              className="border-white/40 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white"
+              className="group h-12 rounded-full border-2 border-primary/40 bg-white/80 px-7 text-base font-semibold text-primary backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-primary hover:bg-white hover:text-primary-deep hover:shadow-[0_10px_30px_-10px_oklch(0.72_0.13_178/0.5)]"
             >
               <Link to="/track">
-                <MapPin className="mr-1.5 h-4 w-4" /> Track Order
+                <MapPin className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
+                Track Order
               </Link>
             </Button>
             <Button
               asChild
               size="lg"
               variant="outline"
-              className="border-white/40 bg-transparent text-white hover:bg-white/15 hover:text-white"
+              className="group h-12 rounded-full border-2 border-dashed border-primary/50 bg-transparent px-7 text-base font-semibold text-primary transition-all hover:-translate-y-0.5 hover:border-solid hover:border-primary hover:bg-primary/10 hover:text-primary-deep"
             >
               <Link to="/partner/register">
-                <Bike className="mr-1.5 h-4 w-4" /> Become a Rider
+                <Bike className="mr-2 h-4 w-4 transition-transform group-hover:-rotate-12" />
+                Become a Rider
               </Link>
             </Button>
           </div>
