@@ -62,16 +62,16 @@ export function Hero() {
             </Button>
           </div>
 
-          <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm text-white">
+          <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm text-primary">
             <div className="flex items-center gap-2">
               <Zap className="h-4 w-4" /> 30–90 min ETA
             </div>
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+              <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
               Live tracking
             </div>
             <div className="flex items-center gap-2">
-              <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs text-white">★ 4.9</span>
+              <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs text-primary">★ 4.9</span>
               Verified riders
             </div>
           </div>
