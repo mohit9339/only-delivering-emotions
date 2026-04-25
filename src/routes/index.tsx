@@ -1,26 +1,59 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Header } from "@/components/Header";
+import { Hero } from "@/components/Hero";
+import { ProblemSection } from "@/components/sections/ProblemSection";
+import { SolutionSection } from "@/components/sections/SolutionSection";
+import { ServicesSection } from "@/components/sections/ServicesSection";
+import { WhyNowSection } from "@/components/sections/WhyNowSection";
+import { HowItWorksSection } from "@/components/sections/HowItWorksSection";
+import { RevenueSection } from "@/components/sections/RevenueSection";
+import { TargetSection } from "@/components/sections/TargetSection";
+import { RoadmapSection } from "@/components/sections/RoadmapSection";
+import { BookingSection } from "@/components/sections/BookingSection";
+import { CTASection } from "@/components/sections/CTASection";
+import { Footer } from "@/components/Footer";
+import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "ONLY — Delivering Emotions | Forgot Something? We Deliver It Fast" },
+      {
+        name: "description",
+        content:
+          "ONLY is a hyperlocal personal delivery service. Tiffin, charger, medicines, keys, documents — delivered in 30–90 minutes by verified riders.",
+      },
+      { property: "og:title", content: "ONLY — Delivering Emotions" },
+      {
+        property: "og:description",
+        content:
+          "Hyperlocal personal delivery in 30–90 minutes. Trusted, fast, tracked.",
+      },
+      { property: "og:type", content: "website" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main>
+        <Hero />
+        <ProblemSection />
+        <SolutionSection />
+        <ServicesSection />
+        <WhyNowSection />
+        <HowItWorksSection />
+        <RevenueSection />
+        <TargetSection />
+        <RoadmapSection />
+        <BookingSection />
+        <CTASection />
+      </main>
+      <Footer />
+      <Toaster position="top-center" richColors />
     </div>
   );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
 }
