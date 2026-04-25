@@ -10,23 +10,23 @@ export function Hero() {
       <div className="absolute inset-0 -z-10 opacity-40 [background:radial-gradient(circle_at_20%_10%,white,transparent_45%),radial-gradient(circle_at_85%_60%,white,transparent_40%)]" />
 
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 lg:grid-cols-2 lg:px-8">
-        <div className="animate-fade-up text-white">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-xs font-medium backdrop-blur-md ring-1 ring-white/30 text-white">
+        <div className="animate-fade-up text-primary">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-xs font-medium backdrop-blur-md ring-1 ring-white/30 text-primary">
             <Sparkles className="h-3.5 w-3.5" />
             India's first hyperlocal personal delivery
           </div>
-          <h1 className="mt-5 font-[Sora] text-4xl font-extrabold leading-[1.05] text-white sm:text-5xl lg:text-6xl">
+          <h1 className="mt-5 font-[Sora] text-4xl font-extrabold leading-[1.05] text-primary sm:text-5xl lg:text-6xl">
             Forgot something?
             <br />
-            <span className="text-white">We deliver it</span>{" "}
-            <span className="relative inline-block text-white">
+            <span className="text-primary">We deliver it</span>{" "}
+            <span className="relative inline-block text-primary">
               <span className="relative z-10">fast.</span>
               <span className="absolute inset-x-0 bottom-1 -z-0 h-3 rounded bg-white/25" />
             </span>
           </h1>
-          <p className="mt-5 max-w-xl text-base text-white sm:text-lg">
+          <p className="mt-5 max-w-xl text-base text-primary sm:text-lg">
             Tiffin, charger, medicines, keys, documents — ONLY brings your forgotten
-            essentials to your doorstep in <strong className="text-white">30–90 minutes</strong>. Because
+            essentials to your doorstep in <strong className="text-primary">30–90 minutes</strong>. Because
             small things carry big emotions.
           </p>
 
@@ -62,16 +62,16 @@ export function Hero() {
             </Button>
           </div>
 
-          <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm text-white">
+          <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm text-primary">
             <div className="flex items-center gap-2">
               <Zap className="h-4 w-4" /> 30–90 min ETA
             </div>
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+              <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
               Live tracking
             </div>
             <div className="flex items-center gap-2">
-              <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs text-white">★ 4.9</span>
+              <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs text-primary">★ 4.9</span>
               Verified riders
             </div>
           </div>
@@ -87,18 +87,18 @@ export function Hero() {
               height={1024}
               className="animate-float w-full"
             />
-            <div className="mt-2 grid grid-cols-3 gap-2 text-center text-white">
+            <div className="mt-2 grid grid-cols-3 gap-2 text-center text-primary">
               <div className="rounded-xl bg-white/15 p-3 backdrop-blur-md">
-                <div className="font-[Sora] text-lg font-bold text-white">30m</div>
-                <div className="text-[10px] uppercase tracking-wider text-white/90">Avg ETA</div>
+                <div className="font-[Sora] text-lg font-bold text-primary">30m</div>
+                <div className="text-[10px] uppercase tracking-wider text-primary/90">Avg ETA</div>
               </div>
               <div className="rounded-xl bg-white/15 p-3 backdrop-blur-md">
-                <div className="font-[Sora] text-lg font-bold text-white">10k+</div>
-                <div className="text-[10px] uppercase tracking-wider text-white/90">Deliveries</div>
+                <div className="font-[Sora] text-lg font-bold text-primary">10k+</div>
+                <div className="text-[10px] uppercase tracking-wider text-primary/90">Deliveries</div>
               </div>
               <div className="rounded-xl bg-white/15 p-3 backdrop-blur-md">
-                <div className="font-[Sora] text-lg font-bold text-white">4.9★</div>
-                <div className="text-[10px] uppercase tracking-wider text-white/90">Rating</div>
+                <div className="font-[Sora] text-lg font-bold text-primary">4.9★</div>
+                <div className="text-[10px] uppercase tracking-wider text-primary/90">Rating</div>
               </div>
             </div>
           </div>
