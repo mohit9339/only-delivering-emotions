@@ -10,23 +10,23 @@ export function Hero() {
       <div className="absolute inset-0 -z-10 opacity-40 [background:radial-gradient(circle_at_20%_10%,white,transparent_45%),radial-gradient(circle_at_85%_60%,white,transparent_40%)]" />
 
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 lg:grid-cols-2 lg:px-8">
-        <div className="animate-fade-up text-white">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-xs font-medium backdrop-blur-md ring-1 ring-white/30 text-white">
+        <div className="animate-fade-up text-primary">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-xs font-medium backdrop-blur-md ring-1 ring-white/30 text-primary">
             <Sparkles className="h-3.5 w-3.5" />
             India's first hyperlocal personal delivery
           </div>
-          <h1 className="mt-5 font-[Sora] text-4xl font-extrabold leading-[1.05] text-white sm:text-5xl lg:text-6xl">
+          <h1 className="mt-5 font-[Sora] text-4xl font-extrabold leading-[1.05] text-primary sm:text-5xl lg:text-6xl">
             Forgot something?
             <br />
-            <span className="text-white">We deliver it</span>{" "}
-            <span className="relative inline-block text-white">
+            <span className="text-primary">We deliver it</span>{" "}
+            <span className="relative inline-block text-primary">
               <span className="relative z-10">fast.</span>
               <span className="absolute inset-x-0 bottom-1 -z-0 h-3 rounded bg-white/25" />
             </span>
           </h1>
-          <p className="mt-5 max-w-xl text-base text-white sm:text-lg">
+          <p className="mt-5 max-w-xl text-base text-primary sm:text-lg">
             Tiffin, charger, medicines, keys, documents — ONLY brings your forgotten
-            essentials to your doorstep in <strong className="text-white">30–90 minutes</strong>. Because
+            essentials to your doorstep in <strong className="text-primary">30–90 minutes</strong>. Because
             small things carry big emotions.
           </p>
 
