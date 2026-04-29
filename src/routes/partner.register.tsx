@@ -215,13 +215,19 @@ function PartnerRegister() {
                 <Button type="submit" disabled={submitting} size="lg" className="mt-6 w-full bg-gradient-cta text-white">
                   {submitting ? "Verifying…" : "Verify & Join"}
                 </Button>
-                <button
-                  type="button"
-                  className="mt-3 block w-full text-center text-xs text-muted-foreground hover:text-primary"
-                  onClick={() => setStep("form")}
-                >
-                  Wrong number? Go back
-                </button>
+                <div className="mt-3 flex items-center justify-between text-xs">
+                  <button type="button" className="text-muted-foreground hover:text-primary" onClick={() => setStep("form")}>
+                    Edit details
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resend}
+                    disabled={resendCooldown > 0 || submitting}
+                    className="text-primary hover:underline disabled:text-muted-foreground disabled:no-underline"
+                  >
+                    {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
+                  </button>
+                </div>
               </form>
             )}
           </div>
