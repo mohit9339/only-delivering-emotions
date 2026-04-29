@@ -22,8 +22,6 @@ type OrderStatus = "pending" | "assigned" | "picked" | "in_transit" | "delivered
 interface Order {
   id: string;
   order_code: string;
-  customer_name: string;
-  customer_phone: string;
   pickup_location: string;
   drop_location: string;
   item_type: string;
@@ -32,12 +30,12 @@ interface Order {
   rider_id: string | null;
   estimated_delivery_at: string | null;
   created_at: string;
+  rider_name?: string | null;
+  rider_vehicle?: string | null;
 }
 
 interface Rider {
-  id: string;
   name: string;
-  phone: string;
   vehicle_type: string;
 }
 
