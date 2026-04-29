@@ -30,68 +30,97 @@ export function MapboxMap({ pickupLabel, dropLabel, className = "" }: MapboxMapP
 
     mapboxgl.accessToken = token;
 
-    // Demo coords (Bengaluru) — in production this comes from geocoded pickup/drop
-    const pickup: [number, number] = [77.6408, 12.9719];
-    const drop: [number, number] = [77.7506, 12.9698];
-    const rider: [number, number] = [77.685, 12.9705];
+    let isCancelled = false;
 
-    try {
-      const map = new mapboxgl.Map({
-        container: containerRef.current,
-        style: "mapbox://styles/mapbox/light-v11",
-        center: [(pickup[0] + drop[0]) / 2, (pickup[1] + drop[1]) / 2],
-        zoom: 11.2,
-        attributionControl: false,
-      });
-      mapRef.current = map;
+    const geocode = async (q?: string): Promise<[number, number] | null> => {
+      if (!q) return null;
+      try {
+        const res = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?limit=1&access_token=${token}`
+        );
+        const json = await res.json();
+        const c = json?.features?.[0]?.center;
+        if (Array.isArray(c) && c.length === 2) return [c[0], c[1]];
+      } catch (e) {
+        console.warn("Geocoding failed for", q, e);
+      }
+      return null;
+    };
 
-      const pickupEl = document.createElement("div");
-      pickupEl.className = "rounded-full bg-primary text-white text-[10px] font-bold px-2 py-1 shadow-glow";
-      pickupEl.innerText = "Pickup";
-      new mapboxgl.Marker({ element: pickupEl }).setLngLat(pickup).addTo(map);
+    (async () => {
+      // Default fallback: Bengaluru
+      const fallbackPickup: [number, number] = [77.6408, 12.9719];
+      const fallbackDrop: [number, number] = [77.7506, 12.9698];
 
-      const dropEl = document.createElement("div");
-      dropEl.className = "rounded-full bg-primary-deep text-white text-[10px] font-bold px-2 py-1 shadow-glow";
-      dropEl.innerText = "Drop";
-      new mapboxgl.Marker({ element: dropEl }).setLngLat(drop).addTo(map);
+      const [geoPickup, geoDrop] = await Promise.all([
+        geocode(pickupLabel),
+        geocode(dropLabel),
+      ]);
+      if (isCancelled || !containerRef.current) return;
 
-      const riderEl = document.createElement("div");
-      riderEl.className = "h-5 w-5 rounded-full bg-white ring-4 ring-primary animate-pulse";
-      new mapboxgl.Marker({ element: riderEl }).setLngLat(rider).addTo(map);
+      const pickup = geoPickup ?? fallbackPickup;
+      const drop = geoDrop ?? fallbackDrop;
+      const rider: [number, number] = [
+        (pickup[0] + drop[0]) / 2,
+        (pickup[1] + drop[1]) / 2,
+      ];
 
-      map.on("load", () => {
-        map.addSource("route", {
-          type: "geojson",
-          data: {
-            type: "Feature",
-            properties: {},
-            geometry: {
-              type: "LineString",
-              coordinates: [pickup, rider, drop],
+      try {
+        const map = new mapboxgl.Map({
+          container: containerRef.current,
+          style: "mapbox://styles/mapbox/light-v11",
+          center: [(pickup[0] + drop[0]) / 2, (pickup[1] + drop[1]) / 2],
+          zoom: 11.2,
+          attributionControl: false,
+        });
+        mapRef.current = map;
+
+        const pickupEl = document.createElement("div");
+        pickupEl.className = "rounded-full bg-primary text-white text-[10px] font-bold px-2 py-1 shadow-glow";
+        pickupEl.innerText = "Pickup";
+        new mapboxgl.Marker({ element: pickupEl }).setLngLat(pickup).addTo(map);
+
+        const dropEl = document.createElement("div");
+        dropEl.className = "rounded-full bg-primary-deep text-white text-[10px] font-bold px-2 py-1 shadow-glow";
+        dropEl.innerText = "Drop";
+        new mapboxgl.Marker({ element: dropEl }).setLngLat(drop).addTo(map);
+
+        const riderEl = document.createElement("div");
+        riderEl.className = "h-5 w-5 rounded-full bg-white ring-4 ring-primary animate-pulse";
+        new mapboxgl.Marker({ element: riderEl }).setLngLat(rider).addTo(map);
+
+        // Fit bounds to both points
+        const bounds = new mapboxgl.LngLatBounds().extend(pickup).extend(drop);
+        map.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 0 });
+
+        map.on("load", () => {
+          map.addSource("route", {
+            type: "geojson",
+            data: {
+              type: "Feature",
+              properties: {},
+              geometry: { type: "LineString", coordinates: [pickup, rider, drop] },
             },
-          },
+          });
+          map.addLayer({
+            id: "route",
+            type: "line",
+            source: "route",
+            layout: { "line-join": "round", "line-cap": "round" },
+            paint: { "line-color": "#16A085", "line-width": 4, "line-dasharray": [0.5, 1.5] },
+          });
         });
-        map.addLayer({
-          id: "route",
-          type: "line",
-          source: "route",
-          layout: { "line-join": "round", "line-cap": "round" },
-          paint: {
-            "line-color": "#16A085",
-            "line-width": 4,
-            "line-dasharray": [0.5, 1.5],
-          },
-        });
-      });
-    } catch (e) {
-      console.error("Mapbox init failed", e);
-    }
+      } catch (e) {
+        console.error("Mapbox init failed", e);
+      }
+    })();
 
     return () => {
+      isCancelled = true;
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [token]);
+  }, [token, pickupLabel, dropLabel]);
 
   if (!token) {
     return (

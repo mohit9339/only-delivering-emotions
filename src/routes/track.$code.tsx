@@ -11,7 +11,7 @@ import {
   CheckCircle2,
   Bike,
   Clock,
-  Phone,
+  // Phone removed for PII safety
   MapPin,
   Loader2,
   XCircle,
@@ -22,8 +22,6 @@ type OrderStatus = "pending" | "assigned" | "picked" | "in_transit" | "delivered
 interface Order {
   id: string;
   order_code: string;
-  customer_name: string;
-  customer_phone: string;
   pickup_location: string;
   drop_location: string;
   item_type: string;
@@ -32,12 +30,12 @@ interface Order {
   rider_id: string | null;
   estimated_delivery_at: string | null;
   created_at: string;
+  rider_name?: string | null;
+  rider_vehicle?: string | null;
 }
 
 interface Rider {
-  id: string;
   name: string;
-  phone: string;
   vehicle_type: string;
 }
 
@@ -69,38 +67,33 @@ function TrackOrderPage() {
   useEffect(() => {
     let cancelled = false;
     async function fetchOrder() {
+      // Use secure RPC — returns tracking-safe fields only (no PII)
       const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("order_code", code)
-        .maybeSingle();
+        .rpc("get_order_by_code", { p_code: code });
       if (cancelled) return;
-      if (error || !data) {
+      const row = Array.isArray(data) ? data[0] : null;
+      if (error || !row) {
         setNotFound(true);
         setLoading(false);
         return;
       }
-      setOrder(data as Order);
-      if (data.rider_id) {
-        const { data: r } = await supabase
-          .from("riders")
-          .select("id,name,phone,vehicle_type")
-          .eq("id", data.rider_id)
-          .maybeSingle();
-        if (r && !cancelled) setRider(r as Rider);
+      setOrder(row as unknown as Order);
+      if (row.rider_name) {
+        setRider({ name: row.rider_name, vehicle_type: row.rider_vehicle ?? "" });
       }
       setLoading(false);
     }
     fetchOrder();
 
-    // Realtime updates
+    // Realtime status updates (RLS allows anon to subscribe to public changefeed only if policy allows;
+    // we re-fetch via RPC on any update event to keep PII off the wire)
     const channel = supabase
       .channel(`order-${code}`)
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders", filter: `order_code=eq.${code}` },
-        (payload) => {
-          setOrder(payload.new as Order);
+        () => {
+          fetchOrder();
         }
       )
       .subscribe();
@@ -226,11 +219,9 @@ function TrackOrderPage() {
                 <div className="font-semibold text-foreground">{rider.name}</div>
                 <div className="text-xs text-muted-foreground">{rider.vehicle_type}</div>
               </div>
-              <Button asChild size="sm" variant="outline">
-                <a href={`tel:${rider.phone}`}>
-                  <Phone className="mr-1 h-3.5 w-3.5" /> Call
-                </a>
-              </Button>
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                On the way
+              </span>
             </div>
           ) : (
             <div className="mt-6 rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

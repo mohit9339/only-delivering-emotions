@@ -17,7 +17,6 @@ export const Route = createFileRoute("/admin/login")({
 
 function AdminLogin() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"login" | "signup">("login");
   const [submitting, setSubmitting] = useState(false);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -27,30 +26,27 @@ function AdminLogin() {
     const email = String(fd.get("email") ?? "").trim();
     const password = String(fd.get("password") ?? "");
 
-    if (mode === "signup") {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: `${window.location.origin}/admin` },
-      });
-      if (error) {
-        toast.error(error.message);
-        setSubmitting(false);
-        return;
-      }
-      if (data.user) {
-        // Self-elevate to admin (MVP — first user becomes admin)
-        await supabase.from("user_roles").insert({ user_id: data.user.id, role: "admin" });
-      }
-      toast.success("Admin account created!");
-      navigate({ to: "/admin" });
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
       setSubmitting(false);
-      if (error) return toast.error(error.message);
-      toast.success("Welcome back!");
-      navigate({ to: "/admin" });
+      return toast.error(error.message);
     }
+
+    // Verify the user actually has the admin role
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", signInData.user!.id);
+
+    const isAdmin = roles?.some((r) => r.role === "admin");
+    if (!isAdmin) {
+      await supabase.auth.signOut();
+      setSubmitting(false);
+      return toast.error("This account does not have admin access.");
+    }
+
+    toast.success("Welcome back!");
+    navigate({ to: "/admin" });
     setSubmitting(false);
   };
 
@@ -63,13 +59,9 @@ function AdminLogin() {
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-cta text-white">
               <ShieldCheck className="h-6 w-6" />
             </div>
-            <h1 className="mt-5 font-[Sora] text-2xl font-bold text-foreground">
-              {mode === "login" ? "Admin login" : "Create admin"}
-            </h1>
+            <h1 className="mt-5 font-[Sora] text-2xl font-bold text-foreground">Admin login</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {mode === "login"
-                ? "Manage orders, riders and analytics."
-                : "First-time setup: create your admin account."}
+              Manage orders, riders and analytics. Admin accounts are provisioned by the ONLY team.
             </p>
 
             <form onSubmit={onSubmit} className="mt-6 space-y-4">
@@ -82,15 +74,12 @@ function AdminLogin() {
                 <Input name="password" type="password" required minLength={8} className="mt-1.5 h-11 rounded-xl" placeholder="••••••••" />
               </div>
               <Button type="submit" disabled={submitting} size="lg" className="w-full bg-gradient-cta text-white">
-                {submitting ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
+                {submitting ? "Please wait…" : "Sign in"}
               </Button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-muted-foreground">
-              {mode === "login" ? "First time?" : "Already have an account?"}{" "}
-              <button onClick={() => setMode(mode === "login" ? "signup" : "login")} className="text-primary underline">
-                {mode === "login" ? "Create admin" : "Sign in"}
-              </button>
+            <p className="mt-6 text-center text-xs text-muted-foreground">
+              Need admin access? Contact your ONLY workspace owner — admins are seeded by the team, not via self-signup.
             </p>
             <p className="mt-2 text-center text-xs text-muted-foreground">
               <Link to="/" className="hover:text-primary">← Back to site</Link>

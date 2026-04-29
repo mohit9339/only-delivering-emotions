@@ -138,6 +138,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bootstrap_first_admin: { Args: { p_email: string }; Returns: string }
       create_guest_order: {
         Args: {
           p_customer_name: string
@@ -154,6 +155,23 @@ export type Database = {
         }[]
       }
       generate_order_code: { Args: never; Returns: string }
+      get_order_by_code: {
+        Args: { p_code: string }
+        Returns: {
+          created_at: string
+          delivery_type: string
+          drop_location: string
+          estimated_delivery_at: string
+          id: string
+          item_type: string
+          order_code: string
+          pickup_location: string
+          rider_id: string
+          rider_name: string
+          rider_vehicle: string
+          status: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

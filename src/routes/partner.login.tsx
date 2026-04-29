@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,27 @@ function PartnerLogin() {
   const [email, setEmail] = useState("");
   const [step, setStep] = useState<"email" | "otp">("email");
   const [submitting, setSubmitting] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
+
+  const requestOtp = async (targetEmail: string) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email: targetEmail,
+      options: { shouldCreateUser: false },
+    });
+    if (error) {
+      toast.error(error.message || "Could not send code. Try again.");
+      return false;
+    }
+    toast.success("OTP sent! Check your email.");
+    setResendCooldown(30);
+    return true;
+  };
 
   const sendOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -32,14 +53,16 @@ function PartnerLogin() {
     const fd = new FormData(e.currentTarget);
     const p = String(fd.get("email") ?? "").trim();
     setEmail(p);
-    const { error } = await supabase.auth.signInWithOtp({
-      email: p,
-      options: { shouldCreateUser: false },
-    });
+    const ok = await requestOtp(p);
     setSubmitting(false);
-    if (error) return toast.error(error.message);
-    toast.success("OTP sent! Check your email.");
-    setStep("otp");
+    if (ok) setStep("otp");
+  };
+
+  const resend = async () => {
+    if (resendCooldown > 0 || !email) return;
+    setSubmitting(true);
+    await requestOtp(email);
+    setSubmitting(false);
   };
 
   const verify = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -49,7 +72,12 @@ function PartnerLogin() {
     const token = String(fd.get("otp") ?? "").trim();
     const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
     setSubmitting(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      const msg = error.message?.toLowerCase() ?? "";
+      if (msg.includes("expired")) return toast.error("Code expired. Tap Resend to get a new one.");
+      if (msg.includes("invalid")) return toast.error("Invalid code. Double-check and try again.");
+      return toast.error(error.message);
+    }
     toast.success("Welcome back!");
     navigate({ to: "/partner/dashboard" });
   };
@@ -87,9 +115,19 @@ function PartnerLogin() {
                 <Button type="submit" disabled={submitting} size="lg" className="w-full bg-gradient-cta text-white">
                   {submitting ? "Verifying…" : "Login"}
                 </Button>
-                <button type="button" onClick={() => setStep("email")} className="block w-full text-center text-xs text-muted-foreground hover:text-primary">
-                  Use a different email
-                </button>
+                <div className="flex items-center justify-between text-xs">
+                  <button type="button" onClick={() => setStep("email")} className="text-muted-foreground hover:text-primary">
+                    Use a different email
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resend}
+                    disabled={resendCooldown > 0 || submitting}
+                    className="text-primary hover:underline disabled:text-muted-foreground disabled:no-underline"
+                  >
+                    {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
+                  </button>
+                </div>
               </form>
             )}
 
