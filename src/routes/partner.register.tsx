@@ -167,9 +167,9 @@ function PartnerRegister() {
               </form>
             ) : (
               <form onSubmit={verifyOtp} className="rounded-3xl border border-border bg-card p-6 shadow-card sm:p-8">
-                <h2 className="font-[Sora] text-xl font-bold text-foreground">Verify your phone</h2>
+                <h2 className="font-[Sora] text-xl font-bold text-foreground">Verify your email</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  We sent a 6-digit code to <strong>{phone}</strong>.
+                  We sent a 6-digit code to <strong>{email}</strong>.
                 </p>
                 <div className="mt-5">
                   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">OTP</Label>
