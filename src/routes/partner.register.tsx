@@ -71,14 +71,14 @@ function PartnerRegister() {
       return;
     }
     // Create rider profile
-    const { error: insertError } = await supabase.from("riders").insert({
+    const { error: insertError } = await supabase.from("riders").insert([{
       user_id: data.user.id,
       name: profile.name,
       email,
-      phone: profile.phone || null,
+      phone: profile.phone,
       vehicle_type: profile.vehicle_type,
       city: profile.city,
-    });
+    }]);
     if (insertError) {
       console.error(insertError);
       toast.error("Could not save profile: " + insertError.message);
