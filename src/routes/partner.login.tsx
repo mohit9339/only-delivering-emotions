@@ -90,7 +90,7 @@ function PartnerLogin() {
                 <button type="button" onClick={() => setStep("email")} className="block w-full text-center text-xs text-muted-foreground hover:text-primary">
                   Use a different email
                 </button>
-              </form>)
+              </form>
             )}
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
