@@ -219,11 +219,9 @@ function TrackOrderPage() {
                 <div className="font-semibold text-foreground">{rider.name}</div>
                 <div className="text-xs text-muted-foreground">{rider.vehicle_type}</div>
               </div>
-              <Button asChild size="sm" variant="outline">
-                <a href={`tel:${rider.phone}`}>
-                  <Phone className="mr-1 h-3.5 w-3.5" /> Call
-                </a>
-              </Button>
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                On the way
+              </span>
             </div>
           ) : (
             <div className="mt-6 rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
