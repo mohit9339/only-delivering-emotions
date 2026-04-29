@@ -135,11 +135,11 @@ function PartnerRegister() {
             {step === "form" ? (
               <form onSubmit={sendOtp} className="rounded-3xl border border-border bg-card p-6 shadow-card sm:p-8">
                 <h2 className="font-[Sora] text-xl font-bold text-foreground">Tell us about yourself</h2>
-                <p className="mt-1 text-sm text-muted-foreground">We'll send a one-time code to verify your phone.</p>
+                <p className="mt-1 text-sm text-muted-foreground">We'll send a one-time code to verify your email.</p>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                   <Field label="Full name" name="name" required placeholder="Rahul Sharma" />
+                  <Field label="Email" name="email" type="email" required placeholder="rahul@example.com" />
                   <Field label="Phone (with country code)" name="phone" type="tel" required placeholder="+919876543210" />
-                  <Field label="Email (optional)" name="email" type="email" placeholder="rahul@example.com" />
                   <Field label="City" name="city" required placeholder="Bengaluru" />
                   <div className="sm:col-span-2">
                     <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
