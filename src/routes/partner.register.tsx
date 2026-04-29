@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -27,12 +27,33 @@ function PartnerRegister() {
   const [step, setStep] = useState<"form" | "otp">("form");
   const [submitting, setSubmitting] = useState(false);
   const [email, setEmail] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [profile, setProfile] = useState({
     name: "",
     phone: "",
     vehicle_type: "Bike",
     city: "",
   });
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
+
+  const requestOtp = async (targetEmail: string) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email: targetEmail,
+      options: { shouldCreateUser: true },
+    });
+    if (error) {
+      toast.error(error.message || "Could not send code. Try again.");
+      return false;
+    }
+    toast.success("OTP sent! Check your email.");
+    setResendCooldown(30);
+    return true;
+  };
 
   const sendOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -46,17 +67,16 @@ function PartnerRegister() {
       vehicle_type: String(fd.get("vehicle_type") ?? "Bike"),
       city: String(fd.get("city") ?? "").trim(),
     });
-    const { error } = await supabase.auth.signInWithOtp({
-      email: p,
-      options: { shouldCreateUser: true },
-    });
+    const ok = await requestOtp(p);
     setSubmitting(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("OTP sent! Check your email.");
-    setStep("otp");
+    if (ok) setStep("otp");
+  };
+
+  const resend = async () => {
+    if (resendCooldown > 0 || !email) return;
+    setSubmitting(true);
+    await requestOtp(email);
+    setSubmitting(false);
   };
 
   const verifyOtp = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -66,27 +86,44 @@ function PartnerRegister() {
     const token = String(fd.get("otp") ?? "").trim();
     const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
     if (error || !data.user) {
-      toast.error(error?.message ?? "Invalid code");
+      const msg = error?.message?.toLowerCase() ?? "";
+      if (msg.includes("expired")) toast.error("Code expired. Tap Resend to get a new one.");
+      else if (msg.includes("invalid")) toast.error("Invalid code. Double-check and try again.");
+      else toast.error(error?.message ?? "Invalid code");
       setSubmitting(false);
       return;
     }
-    // Create rider profile
-    const { error: insertError } = await supabase.from("riders").insert([{
-      user_id: data.user.id,
-      name: profile.name,
-      email,
-      phone: profile.phone,
-      vehicle_type: profile.vehicle_type,
-      city: profile.city,
-    }]);
+
+    // Upsert rider profile (idempotent if user retries)
+    const { error: insertError } = await supabase.from("riders").upsert(
+      [{
+        user_id: data.user.id,
+        name: profile.name,
+        email,
+        phone: profile.phone,
+        vehicle_type: profile.vehicle_type,
+        city: profile.city,
+      }],
+      { onConflict: "user_id" }
+    );
     if (insertError) {
       console.error(insertError);
       toast.error("Could not save profile: " + insertError.message);
       setSubmitting(false);
       return;
     }
-    // Assign rider role
-    await supabase.from("user_roles").insert({ user_id: data.user.id, role: "rider" });
+
+    // Assign rider role (allowed by RLS for self + role='rider'); ignore duplicate
+    const { error: roleError } = await supabase
+      .from("user_roles")
+      .insert({ user_id: data.user.id, role: "rider" });
+    if (roleError && !roleError.message.toLowerCase().includes("duplicate")) {
+      console.error(roleError);
+      toast.error("Could not assign rider role: " + roleError.message);
+      setSubmitting(false);
+      return;
+    }
+
     toast.success("Welcome to ONLY!");
     navigate({ to: "/partner/dashboard" });
   };
