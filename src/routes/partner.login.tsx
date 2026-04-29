@@ -22,20 +22,23 @@ export const Route = createFileRoute("/partner/login")({
 
 function PartnerLogin() {
   const navigate = useNavigate();
-  const [phone, setPhone] = useState("");
-  const [step, setStep] = useState<"phone" | "otp">("phone");
+  const [email, setEmail] = useState("");
+  const [step, setStep] = useState<"email" | "otp">("email");
   const [submitting, setSubmitting] = useState(false);
 
   const sendOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     const fd = new FormData(e.currentTarget);
-    const p = String(fd.get("phone") ?? "").trim();
-    setPhone(p);
-    const { error } = await supabase.auth.signInWithOtp({ phone: p });
+    const p = String(fd.get("email") ?? "").trim();
+    setEmail(p);
+    const { error } = await supabase.auth.signInWithOtp({
+      email: p,
+      options: { shouldCreateUser: false },
+    });
     setSubmitting(false);
     if (error) return toast.error(error.message);
-    toast.success("OTP sent!");
+    toast.success("OTP sent! Check your email.");
     setStep("otp");
   };
 
@@ -44,7 +47,7 @@ function PartnerLogin() {
     setSubmitting(true);
     const fd = new FormData(e.currentTarget);
     const token = String(fd.get("otp") ?? "").trim();
-    const { error } = await supabase.auth.verifyOtp({ phone, token, type: "sms" });
+    const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("Welcome back!");
@@ -62,14 +65,14 @@ function PartnerLogin() {
             </div>
             <h1 className="mt-5 font-[Sora] text-2xl font-bold text-foreground">Rider login</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {step === "phone" ? "We'll text you a one-time code." : `Enter the code sent to ${phone}.`}
+              {step === "email" ? "We'll email you a one-time code." : `Enter the code sent to ${email}.`}
             </p>
 
-            {step === "phone" ? (
+            {step === "email" ? (
               <form onSubmit={sendOtp} className="mt-6 space-y-4">
                 <div>
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Phone</Label>
-                  <Input name="phone" type="tel" required placeholder="+919876543210" className="mt-1.5 h-11 rounded-xl" />
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</Label>
+                  <Input name="email" type="email" required placeholder="rahul@example.com" className="mt-1.5 h-11 rounded-xl" />
                 </div>
                 <Button type="submit" disabled={submitting} size="lg" className="w-full bg-gradient-cta text-white">
                   {submitting ? "Sending…" : "Send OTP"}
@@ -84,8 +87,8 @@ function PartnerLogin() {
                 <Button type="submit" disabled={submitting} size="lg" className="w-full bg-gradient-cta text-white">
                   {submitting ? "Verifying…" : "Login"}
                 </Button>
-                <button type="button" onClick={() => setStep("phone")} className="block w-full text-center text-xs text-muted-foreground hover:text-primary">
-                  Use a different phone
+                <button type="button" onClick={() => setStep("email")} className="block w-full text-center text-xs text-muted-foreground hover:text-primary">
+                  Use a different email
                 </button>
               </form>
             )}

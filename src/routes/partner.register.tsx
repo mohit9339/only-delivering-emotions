@@ -26,10 +26,10 @@ function PartnerRegister() {
   const navigate = useNavigate();
   const [step, setStep] = useState<"form" | "otp">("form");
   const [submitting, setSubmitting] = useState(false);
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [profile, setProfile] = useState({
     name: "",
-    email: "",
+    phone: "",
     vehicle_type: "Bike",
     city: "",
   });
@@ -38,21 +38,24 @@ function PartnerRegister() {
     e.preventDefault();
     setSubmitting(true);
     const fd = new FormData(e.currentTarget);
-    const p = String(fd.get("phone") ?? "").trim();
-    setPhone(p);
+    const p = String(fd.get("email") ?? "").trim();
+    setEmail(p);
     setProfile({
       name: String(fd.get("name") ?? "").trim(),
-      email: String(fd.get("email") ?? "").trim(),
+      phone: String(fd.get("phone") ?? "").trim(),
       vehicle_type: String(fd.get("vehicle_type") ?? "Bike"),
       city: String(fd.get("city") ?? "").trim(),
     });
-    const { error } = await supabase.auth.signInWithOtp({ phone: p });
+    const { error } = await supabase.auth.signInWithOtp({
+      email: p,
+      options: { shouldCreateUser: true },
+    });
     setSubmitting(false);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success("OTP sent! Check your phone.");
+    toast.success("OTP sent! Check your email.");
     setStep("otp");
   };
 
@@ -61,21 +64,21 @@ function PartnerRegister() {
     setSubmitting(true);
     const fd = new FormData(e.currentTarget);
     const token = String(fd.get("otp") ?? "").trim();
-    const { data, error } = await supabase.auth.verifyOtp({ phone, token, type: "sms" });
+    const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
     if (error || !data.user) {
       toast.error(error?.message ?? "Invalid code");
       setSubmitting(false);
       return;
     }
     // Create rider profile
-    const { error: insertError } = await supabase.from("riders").insert({
+    const { error: insertError } = await supabase.from("riders").insert([{
       user_id: data.user.id,
       name: profile.name,
-      email: profile.email || null,
-      phone,
+      email,
+      phone: profile.phone,
       vehicle_type: profile.vehicle_type,
       city: profile.city,
-    });
+    }]);
     if (insertError) {
       console.error(insertError);
       toast.error("Could not save profile: " + insertError.message);
@@ -132,11 +135,11 @@ function PartnerRegister() {
             {step === "form" ? (
               <form onSubmit={sendOtp} className="rounded-3xl border border-border bg-card p-6 shadow-card sm:p-8">
                 <h2 className="font-[Sora] text-xl font-bold text-foreground">Tell us about yourself</h2>
-                <p className="mt-1 text-sm text-muted-foreground">We'll send a one-time code to verify your phone.</p>
+                <p className="mt-1 text-sm text-muted-foreground">We'll send a one-time code to verify your email.</p>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                   <Field label="Full name" name="name" required placeholder="Rahul Sharma" />
+                  <Field label="Email" name="email" type="email" required placeholder="rahul@example.com" />
                   <Field label="Phone (with country code)" name="phone" type="tel" required placeholder="+919876543210" />
-                  <Field label="Email (optional)" name="email" type="email" placeholder="rahul@example.com" />
                   <Field label="City" name="city" required placeholder="Bengaluru" />
                   <div className="sm:col-span-2">
                     <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -164,9 +167,9 @@ function PartnerRegister() {
               </form>
             ) : (
               <form onSubmit={verifyOtp} className="rounded-3xl border border-border bg-card p-6 shadow-card sm:p-8">
-                <h2 className="font-[Sora] text-xl font-bold text-foreground">Verify your phone</h2>
+                <h2 className="font-[Sora] text-xl font-bold text-foreground">Verify your email</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  We sent a 6-digit code to <strong>{phone}</strong>.
+                  We sent a 6-digit code to <strong>{email}</strong>.
                 </p>
                 <div className="mt-5">
                   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">OTP</Label>
