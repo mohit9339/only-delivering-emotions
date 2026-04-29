@@ -11,7 +11,7 @@ import {
   CheckCircle2,
   Bike,
   Clock,
-  Phone,
+  // Phone removed for PII safety
   MapPin,
   Loader2,
   XCircle,
