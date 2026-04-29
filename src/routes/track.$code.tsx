@@ -67,38 +67,33 @@ function TrackOrderPage() {
   useEffect(() => {
     let cancelled = false;
     async function fetchOrder() {
+      // Use secure RPC — returns tracking-safe fields only (no PII)
       const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("order_code", code)
-        .maybeSingle();
+        .rpc("get_order_by_code", { p_code: code });
       if (cancelled) return;
-      if (error || !data) {
+      const row = Array.isArray(data) ? data[0] : null;
+      if (error || !row) {
         setNotFound(true);
         setLoading(false);
         return;
       }
-      setOrder(data as Order);
-      if (data.rider_id) {
-        const { data: r } = await supabase
-          .from("riders")
-          .select("id,name,phone,vehicle_type")
-          .eq("id", data.rider_id)
-          .maybeSingle();
-        if (r && !cancelled) setRider(r as Rider);
+      setOrder(row as unknown as Order);
+      if (row.rider_name) {
+        setRider({ name: row.rider_name, vehicle_type: row.rider_vehicle ?? "" });
       }
       setLoading(false);
     }
     fetchOrder();
 
-    // Realtime updates
+    // Realtime status updates (RLS allows anon to subscribe to public changefeed only if policy allows;
+    // we re-fetch via RPC on any update event to keep PII off the wire)
     const channel = supabase
       .channel(`order-${code}`)
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders", filter: `order_code=eq.${code}` },
-        (payload) => {
-          setOrder(payload.new as Order);
+        () => {
+          fetchOrder();
         }
       )
       .subscribe();
