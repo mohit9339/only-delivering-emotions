@@ -28,8 +28,9 @@ function TrackIndex() {
     e.preventDefault();
     const trimmed = code.trim().toUpperCase();
     if (!trimmed) return;
-    if (!/^ON-[A-Z0-9]{6}$/.test(trimmed)) {
-      toast.error("Order codes look like ON-XXXXXX");
+    // Accept both legacy ON-XXXXXX and new ONLY-XXXXXX
+    if (!/^(ON|ONLY)-[A-Z0-9]{6}$/.test(trimmed)) {
+      toast.error("Order codes look like ONLY-XXXXXX");
       return;
     }
     navigate({ to: "/track/$code", params: { code: trimmed } });
@@ -56,7 +57,7 @@ function TrackIndex() {
                 <Input
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  placeholder="ON-AB12CD"
+                  placeholder="ONLY-AB12CD"
                   className="h-12 rounded-xl bg-white pl-9 font-mono text-base uppercase tracking-wider text-foreground placeholder:normal-case placeholder:text-muted-foreground/60"
                 />
               </div>

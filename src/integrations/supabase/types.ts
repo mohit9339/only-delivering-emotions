@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      order_public_status: {
+        Row: {
+          estimated_delivery_at: string | null
+          order_code: string
+          order_id: string
+          rider_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          estimated_delivery_at?: string | null
+          order_code: string
+          order_id: string
+          rider_id?: string | null
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          estimated_delivery_at?: string | null
+          order_code?: string
+          order_id?: string
+          rider_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_public_status_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           created_at: string
@@ -72,6 +107,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      rate_limits: {
+        Row: {
+          action: string
+          attempted_at: string
+          id: string
+          identifier: string
+          metadata: Json | null
+          succeeded: boolean
+        }
+        Insert: {
+          action: string
+          attempted_at?: string
+          id?: string
+          identifier: string
+          metadata?: Json | null
+          succeeded?: boolean
+        }
+        Update: {
+          action?: string
+          attempted_at?: string
+          id?: string
+          identifier?: string
+          metadata?: Json | null
+          succeeded?: boolean
+        }
+        Relationships: []
       }
       riders: {
         Row: {
@@ -139,45 +201,104 @@ export type Database = {
     }
     Functions: {
       bootstrap_first_admin: { Args: { p_email: string }; Returns: string }
-      create_guest_order: {
+      check_rate_limit: {
         Args: {
-          p_customer_name: string
-          p_customer_phone: string
-          p_delivery_type: string
-          p_drop_location: string
-          p_item_type: string
-          p_notes?: string
-          p_pickup_location: string
+          p_action: string
+          p_identifier: string
+          p_max_attempts?: number
+          p_window_seconds?: number
         }
-        Returns: {
-          id: string
-          order_code: string
-        }[]
+        Returns: Json
       }
+      cleanup_rate_limits: { Args: never; Returns: undefined }
+      create_guest_order:
+        | {
+            Args: {
+              p_customer_name: string
+              p_customer_phone: string
+              p_delivery_type: string
+              p_drop_location: string
+              p_item_type: string
+              p_notes?: string
+              p_pickup_location: string
+            }
+            Returns: {
+              id: string
+              order_code: string
+            }[]
+          }
+        | {
+            Args: {
+              p_client_id?: string
+              p_customer_name: string
+              p_customer_phone: string
+              p_delivery_type: string
+              p_drop_location: string
+              p_item_type: string
+              p_notes?: string
+              p_pickup_location: string
+            }
+            Returns: {
+              id: string
+              order_code: string
+            }[]
+          }
       generate_order_code: { Args: never; Returns: string }
-      get_order_by_code: {
-        Args: { p_code: string }
-        Returns: {
-          created_at: string
-          delivery_type: string
-          drop_location: string
-          estimated_delivery_at: string
-          id: string
-          item_type: string
-          order_code: string
-          pickup_location: string
-          rider_id: string
-          rider_name: string
-          rider_vehicle: string
-          status: string
-        }[]
-      }
+      generate_secure_order_code: { Args: never; Returns: string }
+      get_order_by_code:
+        | {
+            Args: { p_code: string }
+            Returns: {
+              created_at: string
+              delivery_type: string
+              drop_location: string
+              estimated_delivery_at: string
+              id: string
+              item_type: string
+              order_code: string
+              pickup_location: string
+              rider_id: string
+              rider_name: string
+              rider_vehicle: string
+              status: string
+            }[]
+          }
+        | {
+            Args: { p_client_id?: string; p_code: string }
+            Returns: {
+              created_at: string
+              delivery_type: string
+              drop_location: string
+              estimated_delivery_at: string
+              id: string
+              item_type: string
+              order_code: string
+              pickup_location: string
+              rider_id: string
+              rider_name: string
+              rider_vehicle: string
+              status: string
+            }[]
+          }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      is_valid_order_transition: {
+        Args: { _from: string; _to: string }
+        Returns: boolean
+      }
+      record_rate_attempt: {
+        Args: {
+          p_action: string
+          p_identifier: string
+          p_metadata?: Json
+          p_succeeded: boolean
+        }
+        Returns: undefined
       }
     }
     Enums: {
