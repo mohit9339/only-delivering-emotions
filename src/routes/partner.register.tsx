@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { checkLimit, recordAttempt } from "@/lib/rateLimit";
 import { Bike, ShieldCheck, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/partner/register")({
@@ -42,14 +43,21 @@ function PartnerRegister() {
   }, [resendCooldown]);
 
   const requestOtp = async (targetEmail: string) => {
+    const limited = await checkLimit("otp_send", `email:${targetEmail}`, 5, 600);
+    if (limited) {
+      toast.error(limited);
+      return false;
+    }
     const { error } = await supabase.auth.signInWithOtp({
       email: targetEmail,
       options: { shouldCreateUser: true },
     });
     if (error) {
+      await recordAttempt("otp_send", `email:${targetEmail}`, false, { error: error.message });
       toast.error(error.message || "Could not send code. Try again.");
       return false;
     }
+    await recordAttempt("otp_send", `email:${targetEmail}`, true);
     toast.success("OTP sent! Check your email.");
     setResendCooldown(30);
     return true;
@@ -84,8 +92,16 @@ function PartnerRegister() {
     setSubmitting(true);
     const fd = new FormData(e.currentTarget);
     const token = String(fd.get("otp") ?? "").trim();
+
+    const limited = await checkLimit("otp_verify", `email:${email}`, 10, 600);
+    if (limited) {
+      setSubmitting(false);
+      return toast.error(limited);
+    }
+
     const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
     if (error || !data.user) {
+      await recordAttempt("otp_verify", `email:${email}`, false, { reason: error?.message });
       const msg = error?.message?.toLowerCase() ?? "";
       if (msg.includes("expired")) toast.error("Code expired. Tap Resend to get a new one.");
       else if (msg.includes("invalid")) toast.error("Invalid code. Double-check and try again.");
@@ -93,6 +109,7 @@ function PartnerRegister() {
       setSubmitting(false);
       return;
     }
+    await recordAttempt("otp_verify", `email:${email}`, true);
 
     // Upsert rider profile (idempotent if user retries)
     const { error: insertError } = await supabase.from("riders").upsert(
