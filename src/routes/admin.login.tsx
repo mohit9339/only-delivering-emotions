@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { checkLimit, recordAttempt } from "@/lib/rateLimit";
 import { ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/admin/login")({
@@ -23,11 +24,19 @@ function AdminLogin() {
     e.preventDefault();
     setSubmitting(true);
     const fd = new FormData(e.currentTarget);
-    const email = String(fd.get("email") ?? "").trim();
+    const email = String(fd.get("email") ?? "").trim().toLowerCase();
     const password = String(fd.get("password") ?? "");
+
+    // Rate limit: 5 attempts / 15 min per email
+    const limited = await checkLimit("admin_login", `email:${email}`, 5, 900);
+    if (limited) {
+      setSubmitting(false);
+      return toast.error(limited);
+    }
 
     const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
+      await recordAttempt("admin_login", `email:${email}`, false, { reason: "bad_credentials" });
       setSubmitting(false);
       return toast.error(error.message);
     }
@@ -41,10 +50,12 @@ function AdminLogin() {
     const isAdmin = roles?.some((r) => r.role === "admin");
     if (!isAdmin) {
       await supabase.auth.signOut();
+      await recordAttempt("admin_login", `email:${email}`, false, { reason: "not_admin" });
       setSubmitting(false);
       return toast.error("This account does not have admin access.");
     }
 
+    await recordAttempt("admin_login", `email:${email}`, true);
     toast.success("Welcome back!");
     navigate({ to: "/admin" });
     setSubmitting(false);
