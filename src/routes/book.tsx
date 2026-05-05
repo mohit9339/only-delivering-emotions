@@ -56,13 +56,14 @@ function BookPage() {
       p_item_type: item,
       p_delivery_type: speed,
       p_notes: String(fd.get("notes") ?? "").trim() || undefined,
-    };
+      p_client_id: getClientId(),
+    } as never;
 
     const { data, error } = await supabase.rpc("create_guest_order", payload);
 
-    if (error || !data || data.length === 0) {
+    if (error || !data || (data as unknown[]).length === 0) {
       console.error(error);
-      toast.error(error?.message ?? "Could not create order. Try again.");
+      toast.error(formatRateLimitError(error, "Could not create order. Try again."));
       setSubmitting(false);
       return;
     }
