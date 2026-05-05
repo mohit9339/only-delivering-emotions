@@ -10,6 +10,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { MapPin, Package, ArrowRight, CheckCircle2, Zap, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getClientId, formatRateLimitError } from "@/lib/clientId";
 
 const itemTypes = ["Tiffin", "Medicines", "Charger", "Keys", "Documents", "Clothes", "Books", "Shoes", "Other"];
 const speeds = [
