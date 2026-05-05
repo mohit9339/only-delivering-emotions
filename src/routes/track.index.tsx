@@ -28,8 +28,9 @@ function TrackIndex() {
     e.preventDefault();
     const trimmed = code.trim().toUpperCase();
     if (!trimmed) return;
-    if (!/^ON-[A-Z0-9]{6}$/.test(trimmed)) {
-      toast.error("Order codes look like ON-XXXXXX");
+    // Accept both legacy ON-XXXXXX and new ONLY-XXXXXX
+    if (!/^(ON|ONLY)-[A-Z0-9]{6}$/.test(trimmed)) {
+      toast.error("Order codes look like ONLY-XXXXXX");
       return;
     }
     navigate({ to: "/track/$code", params: { code: trimmed } });
