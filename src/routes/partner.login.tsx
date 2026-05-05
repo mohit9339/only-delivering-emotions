@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { checkLimit, recordAttempt } from "@/lib/rateLimit";
 import { Bike } from "lucide-react";
 
 export const Route = createFileRoute("/partner/login")({
@@ -34,14 +35,22 @@ function PartnerLogin() {
   }, [resendCooldown]);
 
   const requestOtp = async (targetEmail: string) => {
+    // 5 OTP sends per email per 10 minutes
+    const limited = await checkLimit("otp_send", `email:${targetEmail}`, 5, 600);
+    if (limited) {
+      toast.error(limited);
+      return false;
+    }
     const { error } = await supabase.auth.signInWithOtp({
       email: targetEmail,
       options: { shouldCreateUser: false },
     });
     if (error) {
+      await recordAttempt("otp_send", `email:${targetEmail}`, false, { error: error.message });
       toast.error(error.message || "Could not send code. Try again.");
       return false;
     }
+    await recordAttempt("otp_send", `email:${targetEmail}`, true);
     toast.success("OTP sent! Check your email.");
     setResendCooldown(30);
     return true;
@@ -70,14 +79,24 @@ function PartnerLogin() {
     setSubmitting(true);
     const fd = new FormData(e.currentTarget);
     const token = String(fd.get("otp") ?? "").trim();
+
+    // 10 verify attempts per email per 10 min, with backoff after that
+    const limited = await checkLimit("otp_verify", `email:${email}`, 10, 600);
+    if (limited) {
+      setSubmitting(false);
+      return toast.error(limited);
+    }
+
     const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
     setSubmitting(false);
     if (error) {
+      await recordAttempt("otp_verify", `email:${email}`, false, { reason: error.message });
       const msg = error.message?.toLowerCase() ?? "";
       if (msg.includes("expired")) return toast.error("Code expired. Tap Resend to get a new one.");
       if (msg.includes("invalid")) return toast.error("Invalid code. Double-check and try again.");
       return toast.error(error.message);
     }
+    await recordAttempt("otp_verify", `email:${email}`, true);
     toast.success("Welcome back!");
     navigate({ to: "/partner/dashboard" });
   };
