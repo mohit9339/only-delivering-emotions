@@ -6,6 +6,7 @@ import { MapboxMap } from "@/components/MapboxMap";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { getClientId } from "@/lib/clientId";
 import {
   Package,
   CheckCircle2,
@@ -67,9 +68,9 @@ function TrackOrderPage() {
   useEffect(() => {
     let cancelled = false;
     async function fetchOrder() {
-      // Use secure RPC — returns tracking-safe fields only (no PII)
+      // Secure RPC — PII-safe + server-side rate limited
       const { data, error } = await supabase
-        .rpc("get_order_by_code", { p_code: code });
+        .rpc("get_order_by_code", { p_code: code, p_client_id: getClientId() } as never);
       if (cancelled) return;
       const row = Array.isArray(data) ? data[0] : null;
       if (error || !row) {
@@ -85,13 +86,17 @@ function TrackOrderPage() {
     }
     fetchOrder();
 
-    // Realtime status updates (RLS allows anon to subscribe to public changefeed only if policy allows;
-    // we re-fetch via RPC on any update event to keep PII off the wire)
+    // Realtime subscribes to the PII-safe public mirror, not the orders table.
     const channel = supabase
-      .channel(`order-${code}`)
+      .channel(`order-public-${code}`)
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "orders", filter: `order_code=eq.${code}` },
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "order_public_status",
+          filter: `order_code=eq.${code}`,
+        },
         () => {
           fetchOrder();
         }
