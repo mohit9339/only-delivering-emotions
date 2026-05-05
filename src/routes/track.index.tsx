@@ -57,7 +57,7 @@ function TrackIndex() {
                 <Input
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  placeholder="ON-AB12CD"
+                  placeholder="ONLY-AB12CD"
                   className="h-12 rounded-xl bg-white pl-9 font-mono text-base uppercase tracking-wider text-foreground placeholder:normal-case placeholder:text-muted-foreground/60"
                 />
               </div>
