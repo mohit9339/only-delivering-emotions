@@ -166,8 +166,6 @@ function PartnerDashboard() {
   }
 
   const earnings = mine.filter((o) => o.status === "delivered").length * 60;
-  const hasActive = mine.some((o) => ["assigned", "picked", "in_transit"].includes(o.status));
-  const geo = useRiderGeolocation(hasActive && rider.status !== "pending");
 
   return (
     <Shell>
