@@ -56,6 +56,12 @@ function PartnerDashboard() {
   const [mine, setMine] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Compute hasActive at top-level so the hook order stays stable across renders.
+  const hasActive = mine.some((o) => ["assigned", "picked", "in_transit"].includes(o.status));
+  const geo = useRiderGeolocation(
+    hasActive && rider !== null && rider.status !== "pending"
+  );
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
