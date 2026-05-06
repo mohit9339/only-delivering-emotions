@@ -240,6 +240,7 @@ function TrackOrderPage() {
           <MapboxMap
             pickupLabel={order.pickup_location}
             dropLabel={order.drop_location}
+            orderCode={order.order_code}
             className="h-[500px] shadow-card"
           />
           <p className="text-center text-xs text-muted-foreground">
