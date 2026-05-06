@@ -193,6 +193,34 @@ function PartnerDashboard() {
           </div>
         )}
 
+        {hasActive && (
+          <div
+            className={`mt-6 flex items-center gap-3 rounded-2xl border p-3 text-sm ${
+              geo.permission === "denied"
+                ? "border-destructive/40 bg-destructive/5 text-destructive"
+                : geo.enabled
+                ? "border-emerald-300/60 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300"
+                : "border-border bg-muted text-muted-foreground"
+            }`}
+          >
+            <Radio className={`h-4 w-4 ${geo.enabled ? "animate-pulse" : ""}`} />
+            <div className="flex-1">
+              {geo.permission === "denied"
+                ? "Location permission denied — customers can't see your live position. Enable it in your browser settings."
+                : geo.enabled
+                ? `Sharing live location · last ping ${
+                    geo.lastSentAt
+                      ? `${Math.max(1, Math.round((Date.now() - geo.lastSentAt) / 1000))}s ago`
+                      : "starting…"
+                  }`
+                : "Waiting for GPS signal…"}
+            </div>
+            {geo.lastError && geo.permission !== "denied" && (
+              <span className="text-xs opacity-70">{geo.lastError}</span>
+            )}
+          </div>
+        )}
+
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
           <Stat icon={<Package className="h-5 w-5" />} label="Active" value={mine.filter((m) => !["delivered", "cancelled"].includes(m.status)).length} />
           <Stat icon={<CheckCircle2 className="h-5 w-5" />} label="Delivered" value={mine.filter((m) => m.status === "delivered").length} />
