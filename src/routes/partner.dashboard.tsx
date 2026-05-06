@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useRiderGeolocation } from "@/hooks/useRiderGeolocation";
 import {
   Loader2,
   Bike,
@@ -16,6 +17,7 @@ import {
   CheckCircle2,
   Truck,
   Wallet,
+  Radio,
 } from "lucide-react";
 
 export const Route = createFileRoute("/partner/dashboard")({
