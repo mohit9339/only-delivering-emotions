@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      order_live_locations: {
+        Row: {
+          heading_deg: number | null
+          lat: number
+          lng: number
+          order_code: string
+          order_id: string
+          rider_id: string
+          speed_mps: number | null
+          updated_at: string
+        }
+        Insert: {
+          heading_deg?: number | null
+          lat: number
+          lng: number
+          order_code: string
+          order_id: string
+          rider_id: string
+          speed_mps?: number | null
+          updated_at?: string
+        }
+        Update: {
+          heading_deg?: number | null
+          lat?: number
+          lng?: number
+          order_code?: string
+          order_id?: string
+          rider_id?: string
+          speed_mps?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_live_locations_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_public_status: {
         Row: {
           estimated_delivery_at: string | null
@@ -134,6 +175,44 @@ export type Database = {
           succeeded?: boolean
         }
         Relationships: []
+      }
+      rider_locations: {
+        Row: {
+          accuracy_m: number | null
+          heading_deg: number | null
+          lat: number
+          lng: number
+          rider_id: string
+          speed_mps: number | null
+          updated_at: string
+        }
+        Insert: {
+          accuracy_m?: number | null
+          heading_deg?: number | null
+          lat: number
+          lng: number
+          rider_id: string
+          speed_mps?: number | null
+          updated_at?: string
+        }
+        Update: {
+          accuracy_m?: number | null
+          heading_deg?: number | null
+          lat?: number
+          lng?: number
+          rider_id?: string
+          speed_mps?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rider_locations_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: true
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       riders: {
         Row: {
@@ -280,6 +359,17 @@ export type Database = {
               status: string
             }[]
           }
+      get_order_live_location: {
+        Args: { p_client_id?: string; p_code: string }
+        Returns: {
+          heading_deg: number
+          lat: number
+          lng: number
+          order_code: string
+          speed_mps: number
+          updated_at: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -297,6 +387,16 @@ export type Database = {
           p_identifier: string
           p_metadata?: Json
           p_succeeded: boolean
+        }
+        Returns: undefined
+      }
+      upsert_rider_location: {
+        Args: {
+          p_accuracy_m?: number
+          p_heading_deg?: number
+          p_lat: number
+          p_lng: number
+          p_speed_mps?: number
         }
         Returns: undefined
       }
