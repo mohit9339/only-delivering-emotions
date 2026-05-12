@@ -227,10 +227,54 @@ function PartnerDashboard() {
           </Button>
         </div>
 
-        {rider.status === "pending" && (
-          <div className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm text-primary-deep">
-            Your account is pending admin approval. You can preview the dashboard meanwhile.
+        {rider.status === "rejected" && (
+          <div className="mt-6 rounded-2xl border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+            <strong>Application rejected.</strong>{" "}
+            {rider.rejection_reason ?? "Please contact support or re-upload your documents."}
           </div>
+        )}
+
+        {(rider.status === "pending" || rider.status === "rejected") && (
+          <Section
+            title="Verification documents"
+            subtitle="Upload these to get approved. Files stay private and only admins can view them."
+          >
+            <div className="grid gap-3 sm:grid-cols-2">
+              {DOC_FIELDS.map((d) => {
+                const uploaded = Boolean(rider[d.col]);
+                return (
+                  <label
+                    key={d.key}
+                    className="flex cursor-pointer items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft hover:border-primary/50"
+                  >
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                        uploaded ? "bg-primary text-white" : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {uploaded ? <FileCheck2 className="h-5 w-5" /> : <Upload className="h-5 w-5" />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold">{d.label}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {uploaded ? "Uploaded · tap to replace" : d.hint}
+                      </div>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) uploadDoc(d.key, d.col, f);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
+                );
+              })}
+            </div>
+          </Section>
         )}
 
         {hasActive && (
