@@ -30,6 +30,7 @@ interface Order {
   customer_name: string;
   customer_phone: string;
   created_at: string;
+  pod_photo_path: string | null;
 }
 
 interface Rider {
@@ -251,13 +252,24 @@ function AdminDashboard() {
                       </select>
                     </td>
                     <td className="px-3 py-3">
-                      <select
-                        value={o.status}
-                        onChange={(e) => setOrderStatus(o.id, e.target.value)}
-                        className="rounded-md border border-input bg-background px-2 py-1 text-xs"
-                      >
-                        {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                      </select>
+                      <div className="flex items-center gap-1">
+                        <select
+                          value={o.status}
+                          onChange={(e) => setOrderStatus(o.id, e.target.value)}
+                          className="rounded-md border border-input bg-background px-2 py-1 text-xs"
+                        >
+                          {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        {o.pod_photo_path && (
+                          <button
+                            onClick={() => openPod(o.pod_photo_path)}
+                            className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-1 text-[10px] font-medium text-primary-deep hover:bg-primary/20"
+                            title="View proof of delivery"
+                          >
+                            <ImageIcon className="h-3 w-3" /> POD
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
