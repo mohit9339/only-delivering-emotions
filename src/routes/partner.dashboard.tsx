@@ -354,13 +354,21 @@ function PartnerDashboard() {
   );
 }
 
-function OrderCard({ order, onUpdate }: { order: Order; onUpdate: (s: string) => void }) {
+function OrderCard({
+  order,
+  onUpdate,
+  onDeliver,
+}: {
+  order: Order;
+  onUpdate: (s: string) => void;
+  onDeliver: (file: File) => void;
+}) {
   const next: Record<string, { label: string; status: string; icon: React.ElementType }> = {
     assigned: { label: "Mark Picked Up", status: "picked", icon: Package },
     picked: { label: "Start Transit", status: "in_transit", icon: Truck },
-    in_transit: { label: "Mark Delivered", status: "delivered", icon: CheckCircle2 },
   };
   const action = next[order.status];
+  const isDeliverStep = order.status === "in_transit";
 
   return (
     <div className="rounded-2xl border border-border bg-card p-4 shadow-soft">
@@ -382,6 +390,22 @@ function OrderCard({ order, onUpdate }: { order: Order; onUpdate: (s: string) =>
           <Button onClick={() => onUpdate(action.status)} className="bg-gradient-cta text-white">
             <action.icon className="mr-1 h-4 w-4" /> {action.label}
           </Button>
+        )}
+        {isDeliverStep && (
+          <label className="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md bg-gradient-cta px-4 text-sm font-medium text-white shadow hover:opacity-95">
+            <Camera className="h-4 w-4" /> Capture POD & Deliver
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onDeliver(f);
+                e.currentTarget.value = "";
+              }}
+            />
+          </label>
         )}
       </div>
     </div>
