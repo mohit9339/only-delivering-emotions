@@ -275,13 +275,14 @@ function AdminDashboard() {
                   <th className="px-3 py-3">Phone</th>
                   <th className="px-3 py-3">Vehicle</th>
                   <th className="px-3 py-3">City</th>
+                  <th className="px-3 py-3">Documents</th>
                   <th className="px-3 py-3">Status</th>
                   <th className="px-3 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {riders.length === 0 && (
-                  <tr><td colSpan={6} className="px-3 py-10 text-center text-muted-foreground">No riders yet.</td></tr>
+                  <tr><td colSpan={7} className="px-3 py-10 text-center text-muted-foreground">No riders yet.</td></tr>
                 )}
                 {riders.map((r) => (
                   <tr key={r.id} className="border-t border-border/60">
@@ -290,21 +291,47 @@ function AdminDashboard() {
                     <td className="px-3 py-3">{r.vehicle_type}</td>
                     <td className="px-3 py-3">{r.city}</td>
                     <td className="px-3 py-3">
+                      <div className="flex flex-wrap gap-1">
+                        {[
+                          { label: "Photo", path: r.profile_photo_path },
+                          { label: "ID", path: r.id_doc_path },
+                          { label: "Licence", path: r.license_doc_path },
+                          { label: "RC", path: r.vehicle_doc_path },
+                        ].map((d) => (
+                          <button
+                            key={d.label}
+                            onClick={() => openDoc(d.path)}
+                            disabled={!d.path}
+                            className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${
+                              d.path
+                                ? "bg-primary/10 text-primary-deep hover:bg-primary/20"
+                                : "bg-muted text-muted-foreground/60 cursor-not-allowed"
+                            }`}
+                          >
+                            <Eye className="h-3 w-3" /> {d.label}
+                          </button>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-3 py-3">
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
                         r.status === "approved" ? "bg-primary text-white" :
                         r.status === "rejected" ? "bg-destructive text-destructive-foreground" :
                         "bg-amber-100 text-amber-900"
                       }`}>{r.status}</span>
+                      {r.rejection_reason && (
+                        <div className="mt-1 max-w-[180px] text-[10px] text-destructive">{r.rejection_reason}</div>
+                      )}
                     </td>
                     <td className="px-3 py-3">
                       <div className="flex gap-1">
                         {r.status !== "approved" && (
-                          <Button size="sm" onClick={() => setRiderStatus(r.id, "approved")} className="h-8 bg-primary text-white">
+                          <Button size="sm" onClick={() => approveRider(r.id)} className="h-8 bg-primary text-white">
                             <CheckCircle2 className="mr-1 h-3 w-3" /> Approve
                           </Button>
                         )}
                         {r.status !== "rejected" && (
-                          <Button size="sm" variant="outline" onClick={() => setRiderStatus(r.id, "rejected")} className="h-8">
+                          <Button size="sm" variant="outline" onClick={() => rejectRider(r.id)} className="h-8">
                             <XCircle className="mr-1 h-3 w-3" /> Reject
                           </Button>
                         )}
