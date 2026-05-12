@@ -141,6 +141,34 @@ function PartnerDashboard() {
     refresh();
   }
 
+  async function deliverWithPod(orderId: string, file: File) {
+    try {
+      const path = await uploadPod(orderId, file);
+      const { error } = await supabase
+        .from("orders")
+        .update({ status: "delivered", pod_photo_path: path })
+        .eq("id", orderId);
+      if (error) throw error;
+      toast.success("Delivered! Proof uploaded.");
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not upload proof");
+    }
+  }
+
+  async function uploadDoc(field: DocField, col: keyof Rider, file: File) {
+    if (!user || !rider) return;
+    try {
+      const path = await uploadRiderDoc(user.id, field, file);
+      const { error } = await supabase.from("riders").update({ [col]: path }).eq("id", rider.id);
+      if (error) throw error;
+      toast.success("Document uploaded");
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    }
+  }
+
   async function logout() {
     await supabase.auth.signOut();
     navigate({ to: "/" });
