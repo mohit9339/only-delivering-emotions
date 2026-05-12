@@ -317,7 +317,12 @@ function PartnerDashboard() {
           ) : (
             <div className="grid gap-3">
               {mine.map((o) => (
-                <OrderCard key={o.id} order={o} onUpdate={(s) => updateStatus(o.id, s)} />
+                <OrderCard
+                  key={o.id}
+                  order={o}
+                  onUpdate={(s) => updateStatus(o.id, s)}
+                  onDeliver={(file) => deliverWithPod(o.id, file)}
+                />
               ))}
             </div>
           )}
