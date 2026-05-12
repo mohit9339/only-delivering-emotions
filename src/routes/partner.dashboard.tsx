@@ -8,16 +8,10 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRiderGeolocation } from "@/hooks/useRiderGeolocation";
+import { uploadRiderDoc, uploadPod } from "@/lib/storage";
 import {
-  Loader2,
-  Bike,
-  MapPin,
-  Package,
-  LogOut,
-  CheckCircle2,
-  Truck,
-  Wallet,
-  Radio,
+  Loader2, Bike, MapPin, Package, LogOut, CheckCircle2, Truck, Wallet, Radio,
+  Camera, FileCheck2, Upload,
 } from "lucide-react";
 
 export const Route = createFileRoute("/partner/dashboard")({
@@ -46,7 +40,20 @@ interface Rider {
   name: string;
   status: string;
   vehicle_type: string;
+  profile_photo_path: string | null;
+  id_doc_path: string | null;
+  license_doc_path: string | null;
+  vehicle_doc_path: string | null;
+  rejection_reason: string | null;
 }
+
+type DocField = "profile_photo" | "id_doc" | "license_doc" | "vehicle_doc";
+const DOC_FIELDS: { key: DocField; col: keyof Rider; label: string; hint: string }[] = [
+  { key: "profile_photo", col: "profile_photo_path", label: "Profile photo", hint: "A clear selfie" },
+  { key: "id_doc", col: "id_doc_path", label: "Government ID", hint: "Aadhaar / PAN / Passport" },
+  { key: "license_doc", col: "license_doc_path", label: "Driver's licence", hint: "Front side" },
+  { key: "vehicle_doc", col: "vehicle_doc_path", label: "Vehicle RC", hint: "Registration certificate" },
+];
 
 function PartnerDashboard() {
   const navigate = useNavigate();
@@ -87,7 +94,7 @@ function PartnerDashboard() {
     if (!user) return;
     const { data: rd } = await supabase
       .from("riders")
-      .select("id,name,status,vehicle_type")
+      .select("id,name,status,vehicle_type,profile_photo_path,id_doc_path,license_doc_path,vehicle_doc_path,rejection_reason")
       .eq("user_id", user.id)
       .maybeSingle();
     if (!rd) {
