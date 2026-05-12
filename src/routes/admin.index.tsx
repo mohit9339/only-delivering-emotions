@@ -7,9 +7,10 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, fetchUserRoles } from "@/hooks/useAuth";
+import { signedUrl } from "@/lib/storage";
 import {
   Loader2, Package, Users, TrendingUp, ShieldCheck, LogOut, MapPin, Truck,
-  CheckCircle2, XCircle,
+  CheckCircle2, XCircle, Eye, Image as ImageIcon,
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/")({
@@ -39,6 +40,15 @@ interface Rider {
   city: string;
   status: string;
   created_at: string;
+  rejection_reason: string | null;
+  profile_photo_path: string | null;
+  id_doc_path: string | null;
+  license_doc_path: string | null;
+  vehicle_doc_path: string | null;
+}
+
+interface OrderRow extends Order {
+  pod_photo_path: string | null;
 }
 
 const STATUSES = ["pending", "assigned", "picked", "in_transit", "delivered", "cancelled"];
@@ -100,10 +110,35 @@ function AdminDashboard() {
     toast.success(riderId ? "Rider assigned" : "Rider unassigned");
   }
 
-  async function setRiderStatus(id: string, status: string) {
-    const { error } = await supabase.from("riders").update({ status }).eq("id", id);
+  async function approveRider(id: string) {
+    const { error } = await supabase.rpc("admin_approve_rider", { p_rider_id: id } as never);
     if (error) return toast.error(error.message);
-    toast.success("Rider updated");
+    toast.success("Rider approved");
+  }
+
+  async function rejectRider(id: string) {
+    const reason = window.prompt("Reason for rejection? (visible to the rider)");
+    if (!reason || reason.trim().length < 3) return;
+    const { error } = await supabase.rpc("admin_reject_rider", {
+      p_rider_id: id,
+      p_reason: reason.trim(),
+    } as never);
+    if (error) return toast.error(error.message);
+    toast.success("Rider rejected");
+  }
+
+  async function openDoc(path: string | null) {
+    if (!path) return toast.error("Not uploaded yet");
+    const url = await signedUrl("rider-docs", path, 300);
+    if (!url) return toast.error("Could not generate link");
+    window.open(url, "_blank", "noopener");
+  }
+
+  async function openPod(path: string | null) {
+    if (!path) return toast.error("No POD on file");
+    const url = await signedUrl("pod", path, 300);
+    if (!url) return toast.error("Could not generate link");
+    window.open(url, "_blank", "noopener");
   }
 
   async function logout() {
