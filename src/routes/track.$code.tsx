@@ -64,6 +64,7 @@ function TrackOrderPage() {
   const [rider, setRider] = useState<Rider | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [podUrl, setPodUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,6 +82,14 @@ function TrackOrderPage() {
       setOrder(row as unknown as Order);
       if (row.rider_name) {
         setRider({ name: row.rider_name, vehicle_type: row.rider_vehicle ?? "" });
+      }
+      // If delivered, fetch POD signed URL
+      if (row.status === "delivered") {
+        const { data: path } = await supabase.rpc("get_order_pod_path", { p_code: code } as never);
+        if (path && typeof path === "string") {
+          const { data: signed } = await supabase.storage.from("pod").createSignedUrl(path, 600);
+          if (!cancelled && signed?.signedUrl) setPodUrl(signed.signedUrl);
+        }
       }
       setLoading(false);
     }
@@ -246,6 +255,19 @@ function TrackOrderPage() {
           <p className="text-center text-xs text-muted-foreground">
             Live rider location updates every few seconds.
           </p>
+          {order.status === "delivered" && podUrl && (
+            <div className="rounded-3xl border border-border bg-card p-4 shadow-card">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Proof of delivery
+              </div>
+              <img
+                src={podUrl}
+                alt="Proof of delivery"
+                className="mt-2 w-full rounded-2xl"
+                loading="lazy"
+              />
+            </div>
+          )}
         </div>
       </div>
     </Shell>

@@ -7,9 +7,10 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, fetchUserRoles } from "@/hooks/useAuth";
+import { signedUrl } from "@/lib/storage";
 import {
   Loader2, Package, Users, TrendingUp, ShieldCheck, LogOut, MapPin, Truck,
-  CheckCircle2, XCircle,
+  CheckCircle2, XCircle, Eye, Image as ImageIcon,
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/")({
@@ -29,6 +30,7 @@ interface Order {
   customer_name: string;
   customer_phone: string;
   created_at: string;
+  pod_photo_path: string | null;
 }
 
 interface Rider {
@@ -39,6 +41,15 @@ interface Rider {
   city: string;
   status: string;
   created_at: string;
+  rejection_reason: string | null;
+  profile_photo_path: string | null;
+  id_doc_path: string | null;
+  license_doc_path: string | null;
+  vehicle_doc_path: string | null;
+}
+
+interface OrderRow extends Order {
+  pod_photo_path: string | null;
 }
 
 const STATUSES = ["pending", "assigned", "picked", "in_transit", "delivered", "cancelled"];
@@ -100,10 +111,35 @@ function AdminDashboard() {
     toast.success(riderId ? "Rider assigned" : "Rider unassigned");
   }
 
-  async function setRiderStatus(id: string, status: string) {
-    const { error } = await supabase.from("riders").update({ status }).eq("id", id);
+  async function approveRider(id: string) {
+    const { error } = await supabase.rpc("admin_approve_rider", { p_rider_id: id } as never);
     if (error) return toast.error(error.message);
-    toast.success("Rider updated");
+    toast.success("Rider approved");
+  }
+
+  async function rejectRider(id: string) {
+    const reason = window.prompt("Reason for rejection? (visible to the rider)");
+    if (!reason || reason.trim().length < 3) return;
+    const { error } = await supabase.rpc("admin_reject_rider", {
+      p_rider_id: id,
+      p_reason: reason.trim(),
+    } as never);
+    if (error) return toast.error(error.message);
+    toast.success("Rider rejected");
+  }
+
+  async function openDoc(path: string | null) {
+    if (!path) return toast.error("Not uploaded yet");
+    const url = await signedUrl("rider-docs", path, 300);
+    if (!url) return toast.error("Could not generate link");
+    window.open(url, "_blank", "noopener");
+  }
+
+  async function openPod(path: string | null) {
+    if (!path) return toast.error("No POD on file");
+    const url = await signedUrl("pod", path, 300);
+    if (!url) return toast.error("Could not generate link");
+    window.open(url, "_blank", "noopener");
   }
 
   async function logout() {
@@ -216,13 +252,24 @@ function AdminDashboard() {
                       </select>
                     </td>
                     <td className="px-3 py-3">
-                      <select
-                        value={o.status}
-                        onChange={(e) => setOrderStatus(o.id, e.target.value)}
-                        className="rounded-md border border-input bg-background px-2 py-1 text-xs"
-                      >
-                        {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                      </select>
+                      <div className="flex items-center gap-1">
+                        <select
+                          value={o.status}
+                          onChange={(e) => setOrderStatus(o.id, e.target.value)}
+                          className="rounded-md border border-input bg-background px-2 py-1 text-xs"
+                        >
+                          {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        {o.pod_photo_path && (
+                          <button
+                            onClick={() => openPod(o.pod_photo_path)}
+                            className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-1 text-[10px] font-medium text-primary-deep hover:bg-primary/20"
+                            title="View proof of delivery"
+                          >
+                            <ImageIcon className="h-3 w-3" /> POD
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -240,13 +287,14 @@ function AdminDashboard() {
                   <th className="px-3 py-3">Phone</th>
                   <th className="px-3 py-3">Vehicle</th>
                   <th className="px-3 py-3">City</th>
+                  <th className="px-3 py-3">Documents</th>
                   <th className="px-3 py-3">Status</th>
                   <th className="px-3 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {riders.length === 0 && (
-                  <tr><td colSpan={6} className="px-3 py-10 text-center text-muted-foreground">No riders yet.</td></tr>
+                  <tr><td colSpan={7} className="px-3 py-10 text-center text-muted-foreground">No riders yet.</td></tr>
                 )}
                 {riders.map((r) => (
                   <tr key={r.id} className="border-t border-border/60">
@@ -255,21 +303,47 @@ function AdminDashboard() {
                     <td className="px-3 py-3">{r.vehicle_type}</td>
                     <td className="px-3 py-3">{r.city}</td>
                     <td className="px-3 py-3">
+                      <div className="flex flex-wrap gap-1">
+                        {[
+                          { label: "Photo", path: r.profile_photo_path },
+                          { label: "ID", path: r.id_doc_path },
+                          { label: "Licence", path: r.license_doc_path },
+                          { label: "RC", path: r.vehicle_doc_path },
+                        ].map((d) => (
+                          <button
+                            key={d.label}
+                            onClick={() => openDoc(d.path)}
+                            disabled={!d.path}
+                            className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${
+                              d.path
+                                ? "bg-primary/10 text-primary-deep hover:bg-primary/20"
+                                : "bg-muted text-muted-foreground/60 cursor-not-allowed"
+                            }`}
+                          >
+                            <Eye className="h-3 w-3" /> {d.label}
+                          </button>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-3 py-3">
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
                         r.status === "approved" ? "bg-primary text-white" :
                         r.status === "rejected" ? "bg-destructive text-destructive-foreground" :
                         "bg-amber-100 text-amber-900"
                       }`}>{r.status}</span>
+                      {r.rejection_reason && (
+                        <div className="mt-1 max-w-[180px] text-[10px] text-destructive">{r.rejection_reason}</div>
+                      )}
                     </td>
                     <td className="px-3 py-3">
                       <div className="flex gap-1">
                         {r.status !== "approved" && (
-                          <Button size="sm" onClick={() => setRiderStatus(r.id, "approved")} className="h-8 bg-primary text-white">
+                          <Button size="sm" onClick={() => approveRider(r.id)} className="h-8 bg-primary text-white">
                             <CheckCircle2 className="mr-1 h-3 w-3" /> Approve
                           </Button>
                         )}
                         {r.status !== "rejected" && (
-                          <Button size="sm" variant="outline" onClick={() => setRiderStatus(r.id, "rejected")} className="h-8">
+                          <Button size="sm" variant="outline" onClick={() => rejectRider(r.id)} className="h-8">
                             <XCircle className="mr-1 h-3 w-3" /> Reject
                           </Button>
                         )}

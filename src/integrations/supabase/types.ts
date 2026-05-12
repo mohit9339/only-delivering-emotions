@@ -95,6 +95,7 @@ export type Database = {
           created_at: string
           customer_name: string
           customer_phone: string
+          delivered_at: string | null
           delivery_type: string
           drop_location: string
           estimated_delivery_at: string | null
@@ -103,6 +104,7 @@ export type Database = {
           notes: string | null
           order_code: string
           pickup_location: string
+          pod_photo_path: string | null
           rider_id: string | null
           status: string
           updated_at: string
@@ -111,6 +113,7 @@ export type Database = {
           created_at?: string
           customer_name: string
           customer_phone: string
+          delivered_at?: string | null
           delivery_type: string
           drop_location: string
           estimated_delivery_at?: string | null
@@ -119,6 +122,7 @@ export type Database = {
           notes?: string | null
           order_code: string
           pickup_location: string
+          pod_photo_path?: string | null
           rider_id?: string | null
           status?: string
           updated_at?: string
@@ -127,6 +131,7 @@ export type Database = {
           created_at?: string
           customer_name?: string
           customer_phone?: string
+          delivered_at?: string | null
           delivery_type?: string
           drop_location?: string
           estimated_delivery_at?: string | null
@@ -135,6 +140,7 @@ export type Database = {
           notes?: string | null
           order_code?: string
           pickup_location?: string
+          pod_photo_path?: string | null
           rider_id?: string | null
           status?: string
           updated_at?: string
@@ -216,39 +222,60 @@ export type Database = {
       }
       riders: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           city: string
           created_at: string
           email: string | null
           id: string
+          id_doc_path: string | null
+          license_doc_path: string | null
           name: string
           phone: string
+          profile_photo_path: string | null
+          rejection_reason: string | null
           status: string
           updated_at: string
           user_id: string | null
+          vehicle_doc_path: string | null
           vehicle_type: string
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           city: string
           created_at?: string
           email?: string | null
           id?: string
+          id_doc_path?: string | null
+          license_doc_path?: string | null
           name: string
           phone: string
+          profile_photo_path?: string | null
+          rejection_reason?: string | null
           status?: string
           updated_at?: string
           user_id?: string | null
+          vehicle_doc_path?: string | null
           vehicle_type: string
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           city?: string
           created_at?: string
           email?: string | null
           id?: string
+          id_doc_path?: string | null
+          license_doc_path?: string | null
           name?: string
           phone?: string
+          profile_photo_path?: string | null
+          rejection_reason?: string | null
           status?: string
           updated_at?: string
           user_id?: string | null
+          vehicle_doc_path?: string | null
           vehicle_type?: string
         }
         Relationships: []
@@ -279,6 +306,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_approve_rider: { Args: { p_rider_id: string }; Returns: undefined }
+      admin_reject_rider: {
+        Args: { p_reason: string; p_rider_id: string }
+        Returns: undefined
+      }
       bootstrap_first_admin: { Args: { p_email: string }; Returns: string }
       check_rate_limit: {
         Args: {
@@ -370,6 +402,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_order_pod_path: { Args: { p_code: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

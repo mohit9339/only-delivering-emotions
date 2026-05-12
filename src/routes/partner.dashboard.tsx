@@ -8,16 +8,10 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRiderGeolocation } from "@/hooks/useRiderGeolocation";
+import { uploadRiderDoc, uploadPod } from "@/lib/storage";
 import {
-  Loader2,
-  Bike,
-  MapPin,
-  Package,
-  LogOut,
-  CheckCircle2,
-  Truck,
-  Wallet,
-  Radio,
+  Loader2, Bike, MapPin, Package, LogOut, CheckCircle2, Truck, Wallet, Radio,
+  Camera, FileCheck2, Upload,
 } from "lucide-react";
 
 export const Route = createFileRoute("/partner/dashboard")({
@@ -46,7 +40,20 @@ interface Rider {
   name: string;
   status: string;
   vehicle_type: string;
+  profile_photo_path: string | null;
+  id_doc_path: string | null;
+  license_doc_path: string | null;
+  vehicle_doc_path: string | null;
+  rejection_reason: string | null;
 }
+
+type DocField = "profile_photo" | "id_doc" | "license_doc" | "vehicle_doc";
+const DOC_FIELDS: { key: DocField; col: keyof Rider; label: string; hint: string }[] = [
+  { key: "profile_photo", col: "profile_photo_path", label: "Profile photo", hint: "A clear selfie" },
+  { key: "id_doc", col: "id_doc_path", label: "Government ID", hint: "Aadhaar / PAN / Passport" },
+  { key: "license_doc", col: "license_doc_path", label: "Driver's licence", hint: "Front side" },
+  { key: "vehicle_doc", col: "vehicle_doc_path", label: "Vehicle RC", hint: "Registration certificate" },
+];
 
 function PartnerDashboard() {
   const navigate = useNavigate();
@@ -87,7 +94,7 @@ function PartnerDashboard() {
     if (!user) return;
     const { data: rd } = await supabase
       .from("riders")
-      .select("id,name,status,vehicle_type")
+      .select("id,name,status,vehicle_type,profile_photo_path,id_doc_path,license_doc_path,vehicle_doc_path,rejection_reason")
       .eq("user_id", user.id)
       .maybeSingle();
     if (!rd) {
@@ -132,6 +139,35 @@ function PartnerDashboard() {
     if (error) return toast.error(error.message);
     toast.success(`Marked ${status.replace("_", " ")}`);
     refresh();
+  }
+
+  async function deliverWithPod(orderId: string, file: File) {
+    try {
+      const path = await uploadPod(orderId, file);
+      const { error } = await supabase
+        .from("orders")
+        .update({ status: "delivered", pod_photo_path: path })
+        .eq("id", orderId);
+      if (error) throw error;
+      toast.success("Delivered! Proof uploaded.");
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not upload proof");
+    }
+  }
+
+  async function uploadDoc(field: DocField, col: keyof Rider, file: File) {
+    if (!user || !rider) return;
+    try {
+      const path = await uploadRiderDoc(user.id, field, file);
+      const update: Record<string, string> = { [col as string]: path };
+      const { error } = await supabase.from("riders").update(update as never).eq("id", rider.id);
+      if (error) throw error;
+      toast.success("Document uploaded");
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    }
   }
 
   async function logout() {
@@ -191,10 +227,54 @@ function PartnerDashboard() {
           </Button>
         </div>
 
-        {rider.status === "pending" && (
-          <div className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm text-primary-deep">
-            Your account is pending admin approval. You can preview the dashboard meanwhile.
+        {rider.status === "rejected" && (
+          <div className="mt-6 rounded-2xl border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+            <strong>Application rejected.</strong>{" "}
+            {rider.rejection_reason ?? "Please contact support or re-upload your documents."}
           </div>
+        )}
+
+        {(rider.status === "pending" || rider.status === "rejected") && (
+          <Section
+            title="Verification documents"
+            subtitle="Upload these to get approved. Files stay private and only admins can view them."
+          >
+            <div className="grid gap-3 sm:grid-cols-2">
+              {DOC_FIELDS.map((d) => {
+                const uploaded = Boolean(rider[d.col]);
+                return (
+                  <label
+                    key={d.key}
+                    className="flex cursor-pointer items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft hover:border-primary/50"
+                  >
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                        uploaded ? "bg-primary text-white" : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {uploaded ? <FileCheck2 className="h-5 w-5" /> : <Upload className="h-5 w-5" />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold">{d.label}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {uploaded ? "Uploaded · tap to replace" : d.hint}
+                      </div>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) uploadDoc(d.key, d.col, f);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
+                );
+              })}
+            </div>
+          </Section>
         )}
 
         {hasActive && (
@@ -237,7 +317,12 @@ function PartnerDashboard() {
           ) : (
             <div className="grid gap-3">
               {mine.map((o) => (
-                <OrderCard key={o.id} order={o} onUpdate={(s) => updateStatus(o.id, s)} />
+                <OrderCard
+                  key={o.id}
+                  order={o}
+                  onUpdate={(s) => updateStatus(o.id, s)}
+                  onDeliver={(file) => deliverWithPod(o.id, file)}
+                />
               ))}
             </div>
           )}
@@ -274,13 +359,21 @@ function PartnerDashboard() {
   );
 }
 
-function OrderCard({ order, onUpdate }: { order: Order; onUpdate: (s: string) => void }) {
+function OrderCard({
+  order,
+  onUpdate,
+  onDeliver,
+}: {
+  order: Order;
+  onUpdate: (s: string) => void;
+  onDeliver: (file: File) => void;
+}) {
   const next: Record<string, { label: string; status: string; icon: React.ElementType }> = {
     assigned: { label: "Mark Picked Up", status: "picked", icon: Package },
     picked: { label: "Start Transit", status: "in_transit", icon: Truck },
-    in_transit: { label: "Mark Delivered", status: "delivered", icon: CheckCircle2 },
   };
   const action = next[order.status];
+  const isDeliverStep = order.status === "in_transit";
 
   return (
     <div className="rounded-2xl border border-border bg-card p-4 shadow-soft">
@@ -302,6 +395,22 @@ function OrderCard({ order, onUpdate }: { order: Order; onUpdate: (s: string) =>
           <Button onClick={() => onUpdate(action.status)} className="bg-gradient-cta text-white">
             <action.icon className="mr-1 h-4 w-4" /> {action.label}
           </Button>
+        )}
+        {isDeliverStep && (
+          <label className="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md bg-gradient-cta px-4 text-sm font-medium text-white shadow hover:opacity-95">
+            <Camera className="h-4 w-4" /> Capture POD & Deliver
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onDeliver(f);
+                e.currentTarget.value = "";
+              }}
+            />
+          </label>
         )}
       </div>
     </div>
