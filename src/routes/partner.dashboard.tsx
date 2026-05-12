@@ -160,7 +160,8 @@ function PartnerDashboard() {
     if (!user || !rider) return;
     try {
       const path = await uploadRiderDoc(user.id, field, file);
-      const { error } = await supabase.from("riders").update({ [col]: path }).eq("id", rider.id);
+      const update: Record<string, string> = { [col as string]: path };
+      const { error } = await supabase.from("riders").update(update as never).eq("id", rider.id);
       if (error) throw error;
       toast.success("Document uploaded");
       refresh();
