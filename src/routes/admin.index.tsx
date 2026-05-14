@@ -206,157 +206,182 @@ function AdminDashboard() {
           <Stat icon={<Users />} label="Approved Riders" value={approvedRiders} />
         </div>
 
-        <Section title="Orders" subtitle="Assign riders, update status, monitor live deliveries">
-          <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-soft">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="px-3 py-3">Code</th>
-                  <th className="px-3 py-3">Customer</th>
-                  <th className="px-3 py-3">Route</th>
-                  <th className="px-3 py-3">Item</th>
-                  <th className="px-3 py-3">Type</th>
-                  <th className="px-3 py-3">Rider</th>
-                  <th className="px-3 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.length === 0 && (
-                  <tr><td colSpan={7} className="px-3 py-10 text-center text-muted-foreground">No orders yet.</td></tr>
-                )}
-                {orders.map((o) => (
-                  <tr key={o.id} className="border-t border-border/60 align-top">
-                    <td className="px-3 py-3 font-mono text-xs">{o.order_code}</td>
-                    <td className="px-3 py-3">
-                      <div className="font-medium">{o.customer_name}</div>
-                      <div className="text-xs text-muted-foreground">{o.customer_phone}</div>
-                    </td>
-                    <td className="px-3 py-3 max-w-[260px]">
-                      <div className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3 text-primary shrink-0" /><span className="truncate">{o.pickup_location}</span></div>
-                      <div className="flex items-center gap-1 truncate text-muted-foreground"><MapPin className="h-3 w-3 text-primary-deep shrink-0" /><span className="truncate">{o.drop_location}</span></div>
-                    </td>
-                    <td className="px-3 py-3">{o.item_type}</td>
-                    <td className="px-3 py-3">
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${o.delivery_type === "emergency" ? "bg-primary text-white" : "bg-secondary text-secondary-foreground"}`}>
-                        {o.delivery_type}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3">
-                      <select
-                        value={o.rider_id ?? ""}
-                        onChange={(e) => assignRider(o.id, e.target.value || null)}
-                        className="rounded-md border border-input bg-background px-2 py-1 text-xs"
-                      >
-                        <option value="">— Unassigned —</option>
-                        {riders.filter((r) => r.status === "approved").map((r) => (
-                          <option key={r.id} value={r.id}>{r.name}</option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="flex items-center gap-1">
-                        <select
-                          value={o.status}
-                          onChange={(e) => setOrderStatus(o.id, e.target.value)}
-                          className="rounded-md border border-input bg-background px-2 py-1 text-xs"
-                        >
-                          {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                        {o.pod_photo_path && (
-                          <button
-                            onClick={() => openPod(o.pod_photo_path)}
-                            className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-1 text-[10px] font-medium text-primary-deep hover:bg-primary/20"
-                            title="View proof of delivery"
-                          >
-                            <ImageIcon className="h-3 w-3" /> POD
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Section>
+        <Tabs defaultValue="orders" className="mt-8">
+          <TabsList className="bg-muted/50 flex-wrap h-auto">
+            <TabsTrigger value="orders">Orders</TabsTrigger>
+            <TabsTrigger value="riders">Riders</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="audit">Audit log</TabsTrigger>
+          </TabsList>
 
-        <Section title="Riders" subtitle="Approve or reject rider applications">
-          <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-soft">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="px-3 py-3">Name</th>
-                  <th className="px-3 py-3">Phone</th>
-                  <th className="px-3 py-3">Vehicle</th>
-                  <th className="px-3 py-3">City</th>
-                  <th className="px-3 py-3">Documents</th>
-                  <th className="px-3 py-3">Status</th>
-                  <th className="px-3 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {riders.length === 0 && (
-                  <tr><td colSpan={7} className="px-3 py-10 text-center text-muted-foreground">No riders yet.</td></tr>
-                )}
-                {riders.map((r) => (
-                  <tr key={r.id} className="border-t border-border/60">
-                    <td className="px-3 py-3 font-medium">{r.name}</td>
-                    <td className="px-3 py-3 text-muted-foreground">{r.phone}</td>
-                    <td className="px-3 py-3">{r.vehicle_type}</td>
-                    <td className="px-3 py-3">{r.city}</td>
-                    <td className="px-3 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {[
-                          { label: "Photo", path: r.profile_photo_path },
-                          { label: "ID", path: r.id_doc_path },
-                          { label: "Licence", path: r.license_doc_path },
-                          { label: "RC", path: r.vehicle_doc_path },
-                        ].map((d) => (
-                          <button
-                            key={d.label}
-                            onClick={() => openDoc(d.path)}
-                            disabled={!d.path}
-                            className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${
-                              d.path
-                                ? "bg-primary/10 text-primary-deep hover:bg-primary/20"
-                                : "bg-muted text-muted-foreground/60 cursor-not-allowed"
-                            }`}
+          <TabsContent value="orders">
+            <Section title="Orders" subtitle="Assign riders, update status, monitor live deliveries">
+              <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-soft">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
+                    <tr>
+                      <th className="px-3 py-3">Code</th>
+                      <th className="px-3 py-3">Customer</th>
+                      <th className="px-3 py-3">Route</th>
+                      <th className="px-3 py-3">Item</th>
+                      <th className="px-3 py-3">Type</th>
+                      <th className="px-3 py-3">Rider</th>
+                      <th className="px-3 py-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.length === 0 && (
+                      <tr><td colSpan={7} className="px-3 py-10 text-center text-muted-foreground">No orders yet.</td></tr>
+                    )}
+                    {orders.map((o) => (
+                      <tr key={o.id} className="border-t border-border/60 align-top">
+                        <td className="px-3 py-3 font-mono text-xs">{o.order_code}</td>
+                        <td className="px-3 py-3">
+                          <div className="font-medium">{o.customer_name}</div>
+                          <div className="text-xs text-muted-foreground">{o.customer_phone}</div>
+                        </td>
+                        <td className="px-3 py-3 max-w-[260px]">
+                          <div className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3 text-primary shrink-0" /><span className="truncate">{o.pickup_location}</span></div>
+                          <div className="flex items-center gap-1 truncate text-muted-foreground"><MapPin className="h-3 w-3 text-primary-deep shrink-0" /><span className="truncate">{o.drop_location}</span></div>
+                        </td>
+                        <td className="px-3 py-3">{o.item_type}</td>
+                        <td className="px-3 py-3">
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${o.delivery_type === "emergency" ? "bg-primary text-white" : "bg-secondary text-secondary-foreground"}`}>
+                            {o.delivery_type}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3">
+                          <select
+                            value={o.rider_id ?? ""}
+                            onChange={(e) => assignRider(o.id, e.target.value || null)}
+                            className="rounded-md border border-input bg-background px-2 py-1 text-xs"
                           >
-                            <Eye className="h-3 w-3" /> {d.label}
-                          </button>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-3 py-3">
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
-                        r.status === "approved" ? "bg-primary text-white" :
-                        r.status === "rejected" ? "bg-destructive text-destructive-foreground" :
-                        "bg-amber-100 text-amber-900"
-                      }`}>{r.status}</span>
-                      {r.rejection_reason && (
-                        <div className="mt-1 max-w-[180px] text-[10px] text-destructive">{r.rejection_reason}</div>
-                      )}
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="flex gap-1">
-                        {r.status !== "approved" && (
-                          <Button size="sm" onClick={() => approveRider(r.id)} className="h-8 bg-primary text-white">
-                            <CheckCircle2 className="mr-1 h-3 w-3" /> Approve
-                          </Button>
-                        )}
-                        {r.status !== "rejected" && (
-                          <Button size="sm" variant="outline" onClick={() => rejectRider(r.id)} className="h-8">
-                            <XCircle className="mr-1 h-3 w-3" /> Reject
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Section>
+                            <option value="">— Unassigned —</option>
+                            {riders.filter((r) => r.status === "approved").map((r) => (
+                              <option key={r.id} value={r.id}>{r.name}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="flex items-center gap-1">
+                            <select
+                              value={o.status}
+                              onChange={(e) => setOrderStatus(o.id, e.target.value)}
+                              className="rounded-md border border-input bg-background px-2 py-1 text-xs"
+                            >
+                              {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                            {o.pod_photo_path && (
+                              <button
+                                onClick={() => openPod(o.pod_photo_path)}
+                                className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-1 text-[10px] font-medium text-primary-deep hover:bg-primary/20"
+                                title="View proof of delivery"
+                              >
+                                <ImageIcon className="h-3 w-3" /> POD
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Section>
+          </TabsContent>
+
+          <TabsContent value="riders">
+            <Section title="Riders" subtitle="Approve or reject rider applications">
+              <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-soft">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
+                    <tr>
+                      <th className="px-3 py-3">Name</th>
+                      <th className="px-3 py-3">Phone</th>
+                      <th className="px-3 py-3">Vehicle</th>
+                      <th className="px-3 py-3">City</th>
+                      <th className="px-3 py-3">Documents</th>
+                      <th className="px-3 py-3">Status</th>
+                      <th className="px-3 py-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {riders.length === 0 && (
+                      <tr><td colSpan={7} className="px-3 py-10 text-center text-muted-foreground">No riders yet.</td></tr>
+                    )}
+                    {riders.map((r) => (
+                      <tr key={r.id} className="border-t border-border/60">
+                        <td className="px-3 py-3 font-medium">{r.name}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{r.phone}</td>
+                        <td className="px-3 py-3">{r.vehicle_type}</td>
+                        <td className="px-3 py-3">{r.city}</td>
+                        <td className="px-3 py-3">
+                          <div className="flex flex-wrap gap-1">
+                            {[
+                              { label: "Photo", path: r.profile_photo_path },
+                              { label: "ID", path: r.id_doc_path },
+                              { label: "Licence", path: r.license_doc_path },
+                              { label: "RC", path: r.vehicle_doc_path },
+                            ].map((d) => (
+                              <button
+                                key={d.label}
+                                onClick={() => openDoc(d.path)}
+                                disabled={!d.path}
+                                className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${
+                                  d.path
+                                    ? "bg-primary/10 text-primary-deep hover:bg-primary/20"
+                                    : "bg-muted text-muted-foreground/60 cursor-not-allowed"
+                                }`}
+                              >
+                                <Eye className="h-3 w-3" /> {d.label}
+                              </button>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-3 py-3">
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                            r.status === "approved" ? "bg-primary text-white" :
+                            r.status === "rejected" ? "bg-destructive text-destructive-foreground" :
+                            "bg-amber-100 text-amber-900"
+                          }`}>{r.status}</span>
+                          {r.rejection_reason && (
+                            <div className="mt-1 max-w-[180px] text-[10px] text-destructive">{r.rejection_reason}</div>
+                          )}
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="flex gap-1">
+                            {r.status !== "approved" && (
+                              <Button size="sm" onClick={() => approveRider(r.id)} className="h-8 bg-primary text-white">
+                                <CheckCircle2 className="mr-1 h-3 w-3" /> Approve
+                              </Button>
+                            )}
+                            {r.status !== "rejected" && (
+                              <Button size="sm" variant="outline" onClick={() => rejectRider(r.id)} className="h-8">
+                                <XCircle className="mr-1 h-3 w-3" /> Reject
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Section>
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <Section title="Analytics" subtitle="Operational health & performance">
+              <AdminAnalytics />
+            </Section>
+          </TabsContent>
+
+          <TabsContent value="audit">
+            <Section title="Audit log" subtitle="Last 100 admin & system events">
+              <AuditLogPanel />
+            </Section>
+          </TabsContent>
+        </Tabs>
       </div>
     </Shell>
   );
