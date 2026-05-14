@@ -18,6 +18,7 @@ import { Route as PartnerRegisterRouteImport } from './routes/partner.register'
 import { Route as PartnerLoginRouteImport } from './routes/partner.login'
 import { Route as PartnerDashboardRouteImport } from './routes/partner.dashboard'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as ApiPublicHooksDispatchNotificationsRouteImport } from './routes/api/public/hooks/dispatch-notifications'
 
 const BookRoute = BookRouteImport.update({
   id: '/book',
@@ -64,6 +65,12 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksDispatchNotificationsRoute =
+  ApiPublicHooksDispatchNotificationsRouteImport.update({
+    id: '/api/public/hooks/dispatch-notifications',
+    path: '/api/public/hooks/dispatch-notifications',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/track/$code': typeof TrackCodeRoute
   '/admin/': typeof AdminIndexRoute
   '/track/': typeof TrackIndexRoute
+  '/api/public/hooks/dispatch-notifications': typeof ApiPublicHooksDispatchNotificationsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,6 +94,7 @@ export interface FileRoutesByTo {
   '/track/$code': typeof TrackCodeRoute
   '/admin': typeof AdminIndexRoute
   '/track': typeof TrackIndexRoute
+  '/api/public/hooks/dispatch-notifications': typeof ApiPublicHooksDispatchNotificationsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +107,7 @@ export interface FileRoutesById {
   '/track/$code': typeof TrackCodeRoute
   '/admin/': typeof AdminIndexRoute
   '/track/': typeof TrackIndexRoute
+  '/api/public/hooks/dispatch-notifications': typeof ApiPublicHooksDispatchNotificationsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/track/$code'
     | '/admin/'
     | '/track/'
+    | '/api/public/hooks/dispatch-notifications'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +133,7 @@ export interface FileRouteTypes {
     | '/track/$code'
     | '/admin'
     | '/track'
+    | '/api/public/hooks/dispatch-notifications'
   id:
     | '__root__'
     | '/'
@@ -133,6 +145,7 @@ export interface FileRouteTypes {
     | '/track/$code'
     | '/admin/'
     | '/track/'
+    | '/api/public/hooks/dispatch-notifications'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -145,6 +158,7 @@ export interface RootRouteChildren {
   TrackCodeRoute: typeof TrackCodeRoute
   AdminIndexRoute: typeof AdminIndexRoute
   TrackIndexRoute: typeof TrackIndexRoute
+  ApiPublicHooksDispatchNotificationsRoute: typeof ApiPublicHooksDispatchNotificationsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -212,6 +226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/dispatch-notifications': {
+      id: '/api/public/hooks/dispatch-notifications'
+      path: '/api/public/hooks/dispatch-notifications'
+      fullPath: '/api/public/hooks/dispatch-notifications'
+      preLoaderRoute: typeof ApiPublicHooksDispatchNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -225,7 +246,18 @@ const rootRouteChildren: RootRouteChildren = {
   TrackCodeRoute: TrackCodeRoute,
   AdminIndexRoute: AdminIndexRoute,
   TrackIndexRoute: TrackIndexRoute,
+  ApiPublicHooksDispatchNotificationsRoute:
+    ApiPublicHooksDispatchNotificationsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
