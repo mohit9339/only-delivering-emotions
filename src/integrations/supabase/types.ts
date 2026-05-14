@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_user_id: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: []
+      }
+      notification_outbox: {
+        Row: {
+          attempts: number
+          channel: string
+          created_at: string
+          id: string
+          last_error: string | null
+          payload: Json
+          recipient: string
+          sent_at: string | null
+          status: string
+          subject: string
+          template: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          channel?: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          payload?: Json
+          recipient: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          template: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          channel?: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          payload?: Json
+          recipient?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          template?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_live_locations: {
         Row: {
           heading_deg: number | null
@@ -321,6 +399,29 @@ export type Database = {
         }
         Returns: Json
       }
+      claim_pending_notifications: {
+        Args: { p_limit?: number }
+        Returns: {
+          attempts: number
+          channel: string
+          created_at: string
+          id: string
+          last_error: string | null
+          payload: Json
+          recipient: string
+          sent_at: string | null
+          status: string
+          subject: string
+          template: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "notification_outbox"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       cleanup_rate_limits: { Args: never; Returns: undefined }
       create_guest_order:
         | {
@@ -354,8 +455,19 @@ export type Database = {
               order_code: string
             }[]
           }
+      enqueue_notification: {
+        Args: {
+          p_channel: string
+          p_payload: Json
+          p_recipient: string
+          p_subject: string
+          p_template: string
+        }
+        Returns: string
+      }
       generate_order_code: { Args: never; Returns: string }
       generate_secure_order_code: { Args: never; Returns: string }
+      get_admin_analytics: { Args: { p_days?: number }; Returns: Json }
       get_order_by_code:
         | {
             Args: { p_code: string }
@@ -414,6 +526,20 @@ export type Database = {
         Args: { _from: string; _to: string }
         Returns: boolean
       }
+      log_audit_event: {
+        Args: {
+          p_action: string
+          p_metadata?: Json
+          p_target_id?: string
+          p_target_type?: string
+        }
+        Returns: undefined
+      }
+      mark_notification_failed: {
+        Args: { p_error: string; p_id: string }
+        Returns: undefined
+      }
+      mark_notification_sent: { Args: { p_id: string }; Returns: undefined }
       record_rate_attempt: {
         Args: {
           p_action: string
