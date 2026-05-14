@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, fetchUserRoles } from "@/hooks/useAuth";
 import { signedUrl } from "@/lib/storage";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { AdminAnalytics, AuditLogPanel } from "@/components/admin/AdminAnalytics";
 import {
   Loader2, Package, Users, TrendingUp, ShieldCheck, LogOut, MapPin, Truck,
   CheckCircle2, XCircle, Eye, Image as ImageIcon,
