@@ -8,10 +8,12 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRiderGeolocation } from "@/hooks/useRiderGeolocation";
+import { useOfflineOutbox } from "@/hooks/useOfflineOutbox";
+import { enqueue } from "@/lib/offlineQueue";
 import { uploadRiderDoc, uploadPod } from "@/lib/storage";
 import {
   Loader2, Bike, MapPin, Package, LogOut, CheckCircle2, Truck, Wallet, Radio,
-  Camera, FileCheck2, Upload,
+  Camera, FileCheck2, Upload, CloudOff,
 } from "lucide-react";
 
 export const Route = createFileRoute("/partner/dashboard")({
@@ -68,6 +70,7 @@ function PartnerDashboard() {
   const geo = useRiderGeolocation(
     hasActive && rider !== null && rider.status !== "pending"
   );
+  const { online, pending, flush } = useOfflineOutbox();
 
   useEffect(() => {
     if (authLoading) return;
@@ -135,9 +138,25 @@ function PartnerDashboard() {
   }
 
   async function updateStatus(id: string, status: string) {
+    if (!online) {
+      await enqueue("order_status", { orderId: id, status });
+      window.dispatchEvent(new CustomEvent("only:outbox-changed"));
+      toast.success(`Saved offline · syncs when you're back online`);
+      // Optimistic local update so the UI moves forward.
+      setMine((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+      return;
+    }
     const { error } = await supabase.from("orders").update({ status }).eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      // Network glitch mid-request → queue it.
+      await enqueue("order_status", { orderId: id, status });
+      window.dispatchEvent(new CustomEvent("only:outbox-changed"));
+      toast.message("Queued for retry", { description: error.message });
+      setMine((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+      return;
+    }
     toast.success(`Marked ${status.replace("_", " ")}`);
+    void flush();
     refresh();
   }
 
