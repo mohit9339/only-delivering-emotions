@@ -245,9 +245,16 @@ function PartnerDashboard() {
               </div>
             </div>
           </div>
-          <Button onClick={logout} variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-            <LogOut className="mr-1.5 h-4 w-4" /> Logout
-          </Button>
+          <div className="flex items-center gap-2">
+            {pending > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider backdrop-blur-md">
+                <CloudOff className="h-3 w-3" /> {pending} queued
+              </span>
+            )}
+            <Button onClick={logout} variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+              <LogOut className="mr-1.5 h-4 w-4" /> Logout
+            </Button>
+          </div>
         </div>
 
         {rider.status === "rejected" && (
