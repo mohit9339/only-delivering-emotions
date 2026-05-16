@@ -8,10 +8,12 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRiderGeolocation } from "@/hooks/useRiderGeolocation";
+import { useOfflineOutbox } from "@/hooks/useOfflineOutbox";
+import { enqueue } from "@/lib/offlineQueue";
 import { uploadRiderDoc, uploadPod } from "@/lib/storage";
 import {
   Loader2, Bike, MapPin, Package, LogOut, CheckCircle2, Truck, Wallet, Radio,
-  Camera, FileCheck2, Upload,
+  Camera, FileCheck2, Upload, CloudOff,
 } from "lucide-react";
 
 export const Route = createFileRoute("/partner/dashboard")({
@@ -68,6 +70,7 @@ function PartnerDashboard() {
   const geo = useRiderGeolocation(
     hasActive && rider !== null && rider.status !== "pending"
   );
+  const { online, pending, flush } = useOfflineOutbox();
 
   useEffect(() => {
     if (authLoading) return;
@@ -135,13 +138,33 @@ function PartnerDashboard() {
   }
 
   async function updateStatus(id: string, status: string) {
+    if (!online) {
+      await enqueue("order_status", { orderId: id, status });
+      window.dispatchEvent(new CustomEvent("only:outbox-changed"));
+      toast.success(`Saved offline · syncs when you're back online`);
+      // Optimistic local update so the UI moves forward.
+      setMine((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+      return;
+    }
     const { error } = await supabase.from("orders").update({ status }).eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      // Network glitch mid-request → queue it.
+      await enqueue("order_status", { orderId: id, status });
+      window.dispatchEvent(new CustomEvent("only:outbox-changed"));
+      toast.message("Queued for retry", { description: error.message });
+      setMine((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+      return;
+    }
     toast.success(`Marked ${status.replace("_", " ")}`);
+    void flush();
     refresh();
   }
 
   async function deliverWithPod(orderId: string, file: File) {
+    if (!online) {
+      toast.error("You're offline — POD photo needs a connection to upload");
+      return;
+    }
     try {
       const path = await uploadPod(orderId, file);
       const { error } = await supabase
@@ -222,9 +245,16 @@ function PartnerDashboard() {
               </div>
             </div>
           </div>
-          <Button onClick={logout} variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-            <LogOut className="mr-1.5 h-4 w-4" /> Logout
-          </Button>
+          <div className="flex items-center gap-2">
+            {pending > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider backdrop-blur-md">
+                <CloudOff className="h-3 w-3" /> {pending} queued
+              </span>
+            )}
+            <Button onClick={logout} variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+              <LogOut className="mr-1.5 h-4 w-4" /> Logout
+            </Button>
+          </div>
         </div>
 
         {rider.status === "rejected" && (

@@ -1,6 +1,10 @@
+import { useEffect } from "react";
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
+import { registerPwa } from "@/lib/pwa";
 
 function NotFoundComponent() {
   return (
@@ -28,7 +32,12 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "theme-color", content: "#ff3b6b" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "ONLY" },
+      { name: "mobile-web-app-capable", content: "yes" },
       { title: "Only" },
       { name: "description", content: "ONLY is a hyperlocal delivery service website for forgotten essential items." },
       { name: "author", content: "Lovable" },
@@ -44,10 +53,9 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "icon", type: "image/png", href: "/favicon.png" },
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "stylesheet", href: appCss },
     ],
   }),
   shellComponent: RootShell,
@@ -70,5 +78,14 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  return <Outlet />;
+  useEffect(() => {
+    registerPwa();
+  }, []);
+  return (
+    <>
+      <OfflineBanner />
+      <Outlet />
+      <PwaInstallPrompt />
+    </>
+  );
 }
