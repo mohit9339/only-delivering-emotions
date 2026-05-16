@@ -161,6 +161,10 @@ function PartnerDashboard() {
   }
 
   async function deliverWithPod(orderId: string, file: File) {
+    if (!online) {
+      toast.error("You're offline — POD photo needs a connection to upload");
+      return;
+    }
     try {
       const path = await uploadPod(orderId, file);
       const { error } = await supabase
