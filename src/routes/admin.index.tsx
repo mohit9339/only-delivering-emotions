@@ -345,6 +345,7 @@ function AdminDashboard() {
                           </div>
                         </td>
                         <td className="px-3 py-3">
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
                             r.status === "approved" ? "bg-primary text-white" :
                             r.status === "rejected" ? "bg-destructive text-destructive-foreground" :
                             "bg-amber-100 text-amber-900"
