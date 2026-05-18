@@ -14,6 +14,7 @@ import {
   Loader2, Package, Users, TrendingUp, ShieldCheck, LogOut, MapPin, Truck,
   CheckCircle2, XCircle, Eye, Image as ImageIcon,
 } from "lucide-react";
+import { ReviewStars } from "@/components/ReviewStars";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({ meta: [{ title: "Admin Dashboard — ONLY" }] }),
