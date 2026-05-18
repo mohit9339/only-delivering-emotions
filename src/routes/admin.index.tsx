@@ -300,13 +300,14 @@ function AdminDashboard() {
                       <th className="px-3 py-3">Vehicle</th>
                       <th className="px-3 py-3">City</th>
                       <th className="px-3 py-3">Documents</th>
+                      <th className="px-3 py-3">Rating</th>
                       <th className="px-3 py-3">Status</th>
                       <th className="px-3 py-3">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {riders.length === 0 && (
-                      <tr><td colSpan={7} className="px-3 py-10 text-center text-muted-foreground">No riders yet.</td></tr>
+                      <tr><td colSpan={8} className="px-3 py-10 text-center text-muted-foreground">No riders yet.</td></tr>
                     )}
                     {riders.map((r) => (
                       <tr key={r.id} className="border-t border-border/60">
@@ -338,7 +339,12 @@ function AdminDashboard() {
                           </div>
                         </td>
                         <td className="px-3 py-3">
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                          <ReviewStars value={r.avg_rating} size={12} showValue />
+                          <div className="text-[10px] text-muted-foreground">
+                            {r.reviews_count} review{r.reviews_count === 1 ? "" : "s"}
+                          </div>
+                        </td>
+                        <td className="px-3 py-3">
                             r.status === "approved" ? "bg-primary text-white" :
                             r.status === "rejected" ? "bg-destructive text-destructive-foreground" :
                             "bg-amber-100 text-amber-900"
