@@ -47,6 +47,39 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_profiles: {
+        Row: {
+          created_at: string
+          default_drop: string | null
+          default_pickup: string | null
+          display_name: string
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_drop?: string | null
+          default_pickup?: string | null
+          display_name: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_drop?: string | null
+          default_pickup?: string | null
+          display_name?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_outbox: {
         Row: {
           attempts: number
@@ -173,6 +206,7 @@ export type Database = {
           created_at: string
           customer_name: string
           customer_phone: string
+          customer_user_id: string | null
           delivered_at: string | null
           delivery_type: string
           drop_location: string
@@ -191,6 +225,7 @@ export type Database = {
           created_at?: string
           customer_name: string
           customer_phone: string
+          customer_user_id?: string | null
           delivered_at?: string | null
           delivery_type: string
           drop_location: string
@@ -209,6 +244,7 @@ export type Database = {
           created_at?: string
           customer_name?: string
           customer_phone?: string
+          customer_user_id?: string | null
           delivered_at?: string | null
           delivery_type?: string
           drop_location?: string
@@ -260,6 +296,36 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          created_at: string
+          customer_user_id: string
+          feedback: string | null
+          id: string
+          order_id: string
+          rating: number
+          rider_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_user_id: string
+          feedback?: string | null
+          id?: string
+          order_id: string
+          rating: number
+          rider_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_user_id?: string
+          feedback?: string | null
+          id?: string
+          order_id?: string
+          rating?: number
+          rider_id?: string
+        }
+        Relationships: []
+      }
       rider_locations: {
         Row: {
           accuracy_m: number | null
@@ -302,6 +368,7 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          avg_rating: number | null
           city: string
           created_at: string
           email: string | null
@@ -312,6 +379,7 @@ export type Database = {
           phone: string
           profile_photo_path: string | null
           rejection_reason: string | null
+          reviews_count: number
           status: string
           updated_at: string
           user_id: string | null
@@ -321,6 +389,7 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          avg_rating?: number | null
           city: string
           created_at?: string
           email?: string | null
@@ -331,6 +400,7 @@ export type Database = {
           phone: string
           profile_photo_path?: string | null
           rejection_reason?: string | null
+          reviews_count?: number
           status?: string
           updated_at?: string
           user_id?: string | null
@@ -340,6 +410,7 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          avg_rating?: number | null
           city?: string
           created_at?: string
           email?: string | null
@@ -350,6 +421,7 @@ export type Database = {
           phone?: string
           profile_photo_path?: string | null
           rejection_reason?: string | null
+          reviews_count?: number
           status?: string
           updated_at?: string
           user_id?: string | null
@@ -468,6 +540,25 @@ export type Database = {
       generate_order_code: { Args: never; Returns: string }
       generate_secure_order_code: { Args: never; Returns: string }
       get_admin_analytics: { Args: { p_days?: number }; Returns: Json }
+      get_my_orders: {
+        Args: never
+        Returns: {
+          created_at: string
+          delivered_at: string
+          delivery_type: string
+          drop_location: string
+          estimated_delivery_at: string
+          id: string
+          item_type: string
+          order_code: string
+          pickup_location: string
+          review_feedback: string
+          review_rating: number
+          rider_id: string
+          rider_name: string
+          status: string
+        }[]
+      }
       get_order_by_code:
         | {
             Args: { p_code: string }
@@ -548,6 +639,10 @@ export type Database = {
           p_succeeded: boolean
         }
         Returns: undefined
+      }
+      submit_review: {
+        Args: { p_feedback?: string; p_order_code: string; p_rating: number }
+        Returns: string
       }
       upsert_rider_location: {
         Args: {
