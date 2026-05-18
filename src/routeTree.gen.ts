@@ -13,11 +13,13 @@ import { Route as BookRouteImport } from './routes/book'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrackIndexRouteImport } from './routes/track.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as TrackCodeRouteImport } from './routes/track.$code'
 import { Route as PartnerRegisterRouteImport } from './routes/partner.register'
 import { Route as PartnerLoginRouteImport } from './routes/partner.login'
 import { Route as PartnerDashboardRouteImport } from './routes/partner.dashboard'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AccountLoginRouteImport } from './routes/account.login'
 import { Route as ApiPublicHooksDispatchNotificationsRouteImport } from './routes/api/public/hooks/dispatch-notifications'
 
 const BookRoute = BookRouteImport.update({
@@ -38,6 +40,11 @@ const TrackIndexRoute = TrackIndexRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountIndexRoute = AccountIndexRouteImport.update({
+  id: '/account/',
+  path: '/account/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrackCodeRoute = TrackCodeRouteImport.update({
@@ -65,6 +72,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountLoginRoute = AccountLoginRouteImport.update({
+  id: '/account/login',
+  path: '/account/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksDispatchNotificationsRoute =
   ApiPublicHooksDispatchNotificationsRouteImport.update({
     id: '/api/public/hooks/dispatch-notifications',
@@ -75,11 +87,13 @@ const ApiPublicHooksDispatchNotificationsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/book': typeof BookRoute
+  '/account/login': typeof AccountLoginRoute
   '/admin/login': typeof AdminLoginRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
   '/partner/login': typeof PartnerLoginRoute
   '/partner/register': typeof PartnerRegisterRoute
   '/track/$code': typeof TrackCodeRoute
+  '/account/': typeof AccountIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/track/': typeof TrackIndexRoute
   '/api/public/hooks/dispatch-notifications': typeof ApiPublicHooksDispatchNotificationsRoute
@@ -87,11 +101,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/book': typeof BookRoute
+  '/account/login': typeof AccountLoginRoute
   '/admin/login': typeof AdminLoginRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
   '/partner/login': typeof PartnerLoginRoute
   '/partner/register': typeof PartnerRegisterRoute
   '/track/$code': typeof TrackCodeRoute
+  '/account': typeof AccountIndexRoute
   '/admin': typeof AdminIndexRoute
   '/track': typeof TrackIndexRoute
   '/api/public/hooks/dispatch-notifications': typeof ApiPublicHooksDispatchNotificationsRoute
@@ -100,11 +116,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/book': typeof BookRoute
+  '/account/login': typeof AccountLoginRoute
   '/admin/login': typeof AdminLoginRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
   '/partner/login': typeof PartnerLoginRoute
   '/partner/register': typeof PartnerRegisterRoute
   '/track/$code': typeof TrackCodeRoute
+  '/account/': typeof AccountIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/track/': typeof TrackIndexRoute
   '/api/public/hooks/dispatch-notifications': typeof ApiPublicHooksDispatchNotificationsRoute
@@ -114,11 +132,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/book'
+    | '/account/login'
     | '/admin/login'
     | '/partner/dashboard'
     | '/partner/login'
     | '/partner/register'
     | '/track/$code'
+    | '/account/'
     | '/admin/'
     | '/track/'
     | '/api/public/hooks/dispatch-notifications'
@@ -126,11 +146,13 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/book'
+    | '/account/login'
     | '/admin/login'
     | '/partner/dashboard'
     | '/partner/login'
     | '/partner/register'
     | '/track/$code'
+    | '/account'
     | '/admin'
     | '/track'
     | '/api/public/hooks/dispatch-notifications'
@@ -138,11 +160,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/book'
+    | '/account/login'
     | '/admin/login'
     | '/partner/dashboard'
     | '/partner/login'
     | '/partner/register'
     | '/track/$code'
+    | '/account/'
     | '/admin/'
     | '/track/'
     | '/api/public/hooks/dispatch-notifications'
@@ -151,11 +175,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookRoute: typeof BookRoute
+  AccountLoginRoute: typeof AccountLoginRoute
   AdminLoginRoute: typeof AdminLoginRoute
   PartnerDashboardRoute: typeof PartnerDashboardRoute
   PartnerLoginRoute: typeof PartnerLoginRoute
   PartnerRegisterRoute: typeof PartnerRegisterRoute
   TrackCodeRoute: typeof TrackCodeRoute
+  AccountIndexRoute: typeof AccountIndexRoute
   AdminIndexRoute: typeof AdminIndexRoute
   TrackIndexRoute: typeof TrackIndexRoute
   ApiPublicHooksDispatchNotificationsRoute: typeof ApiPublicHooksDispatchNotificationsRoute
@@ -189,6 +215,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account/': {
+      id: '/account/'
+      path: '/account'
+      fullPath: '/account/'
+      preLoaderRoute: typeof AccountIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/track/$code': {
@@ -226,6 +259,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account/login': {
+      id: '/account/login'
+      path: '/account/login'
+      fullPath: '/account/login'
+      preLoaderRoute: typeof AccountLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/dispatch-notifications': {
       id: '/api/public/hooks/dispatch-notifications'
       path: '/api/public/hooks/dispatch-notifications'
@@ -239,11 +279,13 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookRoute: BookRoute,
+  AccountLoginRoute: AccountLoginRoute,
   AdminLoginRoute: AdminLoginRoute,
   PartnerDashboardRoute: PartnerDashboardRoute,
   PartnerLoginRoute: PartnerLoginRoute,
   PartnerRegisterRoute: PartnerRegisterRoute,
   TrackCodeRoute: TrackCodeRoute,
+  AccountIndexRoute: AccountIndexRoute,
   AdminIndexRoute: AdminIndexRoute,
   TrackIndexRoute: TrackIndexRoute,
   ApiPublicHooksDispatchNotificationsRoute:
@@ -252,12 +294,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

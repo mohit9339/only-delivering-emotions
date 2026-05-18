@@ -14,6 +14,7 @@ import {
   Loader2, Package, Users, TrendingUp, ShieldCheck, LogOut, MapPin, Truck,
   CheckCircle2, XCircle, Eye, Image as ImageIcon,
 } from "lucide-react";
+import { ReviewStars } from "@/components/ReviewStars";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({ meta: [{ title: "Admin Dashboard — ONLY" }] }),
@@ -48,10 +49,8 @@ interface Rider {
   id_doc_path: string | null;
   license_doc_path: string | null;
   vehicle_doc_path: string | null;
-}
-
-interface OrderRow extends Order {
-  pod_photo_path: string | null;
+  avg_rating: number | null;
+  reviews_count: number;
 }
 
 const STATUSES = ["pending", "assigned", "picked", "in_transit", "delivered", "cancelled"];
@@ -301,13 +300,14 @@ function AdminDashboard() {
                       <th className="px-3 py-3">Vehicle</th>
                       <th className="px-3 py-3">City</th>
                       <th className="px-3 py-3">Documents</th>
+                      <th className="px-3 py-3">Rating</th>
                       <th className="px-3 py-3">Status</th>
                       <th className="px-3 py-3">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {riders.length === 0 && (
-                      <tr><td colSpan={7} className="px-3 py-10 text-center text-muted-foreground">No riders yet.</td></tr>
+                      <tr><td colSpan={8} className="px-3 py-10 text-center text-muted-foreground">No riders yet.</td></tr>
                     )}
                     {riders.map((r) => (
                       <tr key={r.id} className="border-t border-border/60">
@@ -336,6 +336,12 @@ function AdminDashboard() {
                                 <Eye className="h-3 w-3" /> {d.label}
                               </button>
                             ))}
+                          </div>
+                        </td>
+                        <td className="px-3 py-3">
+                          <ReviewStars value={r.avg_rating} size={12} showValue />
+                          <div className="text-[10px] text-muted-foreground">
+                            {r.reviews_count} review{r.reviews_count === 1 ? "" : "s"}
                           </div>
                         </td>
                         <td className="px-3 py-3">
