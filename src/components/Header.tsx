@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Logo } from "./Logo";
 import { Button } from "./ui/button";
-import { Menu, X, Bike } from "lucide-react";
+import { Menu, X, Bike, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const links = [
   { to: "/", label: "Home" },
@@ -14,6 +15,8 @@ const links = [
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { user } = useAuth();
+
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -53,6 +56,11 @@ export function Header() {
               <Bike className="mr-1.5 h-4 w-4" /> Become a Rider
             </Link>
           </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link to={user ? "/account" : "/account/login"}>
+              <User className="mr-1.5 h-4 w-4" /> {user ? "Account" : "Sign in"}
+            </Link>
+          </Button>
           <Button
             asChild
             size="sm"
@@ -87,6 +95,11 @@ export function Header() {
             <Button asChild variant="outline" className="mt-2">
               <Link to="/partner/register" onClick={() => setOpen(false)}>
                 <Bike className="mr-1.5 h-4 w-4" /> Become a Rider
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to={user ? "/account" : "/account/login"} onClick={() => setOpen(false)}>
+                <User className="mr-1.5 h-4 w-4" /> {user ? "My account" : "Sign in"}
               </Link>
             </Button>
             <Button asChild className="bg-gradient-cta text-white">

@@ -48,10 +48,8 @@ interface Rider {
   id_doc_path: string | null;
   license_doc_path: string | null;
   vehicle_doc_path: string | null;
-}
-
-interface OrderRow extends Order {
-  pod_photo_path: string | null;
+  avg_rating: number | null;
+  reviews_count: number;
 }
 
 const STATUSES = ["pending", "assigned", "picked", "in_transit", "delivered", "cancelled"];
