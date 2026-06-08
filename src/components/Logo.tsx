@@ -1,4 +1,4 @@
-import logoSrc from "@/assets/only-logo.png";
+import logoAsset from "@/assets/logo.png.asset.json";
 
 interface LogoProps {
   className?: string;
@@ -8,7 +8,7 @@ interface LogoProps {
 export function Logo({ className = "", size = 40 }: LogoProps) {
   return (
     <img
-      src={logoSrc}
+      src={logoAsset.url}
       alt="ONLY"
       width={size}
       height={size}
