@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import { OfflineBanner } from "@/components/OfflineBanner";
 import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
 import { registerPwa } from "@/lib/pwa";
 
