@@ -85,7 +85,6 @@ function RootComponent() {
   }, []);
   return (
     <>
-      <OfflineBanner />
       <Outlet />
       <PwaInstallPrompt />
     </>
