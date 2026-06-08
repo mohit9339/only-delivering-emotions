@@ -2,21 +2,14 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Logo } from "./Logo";
 import { Button } from "./ui/button";
-import { Menu, X, Bike, User } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { Menu, X, Bike, ShoppingBag } from "lucide-react";
 
-const links = [
-  { to: "/", label: "Home" },
-  { to: "/track", label: "Track Order" },
-  { to: "/partner/login", label: "Riders" },
-  { to: "/admin/login", label: "Admin" },
-] as const;
+const CUSTOMER_URL = "https://only-customer.vercel.app/";
+const RIDER_URL = "https://rider-companion-app-1cb8643e.vercel.app/";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const { user } = useAuth();
-
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -37,43 +30,25 @@ export function Header() {
         <Link to="/" className="shrink-0 flex items-center gap-2">
           <Logo size={36} />
         </Link>
-        <nav className="hidden items-center gap-7 md:flex">
-          {links.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-              activeProps={{ className: "text-primary" }}
-              activeOptions={{ exact: l.to === "/" }}
-            >
-              {l.label}
-            </Link>
-          ))}
-        </nav>
         <div className="hidden items-center gap-2 md:flex">
           <Button asChild variant="ghost" size="sm">
-            <Link to="/partner/register">
-              <Bike className="mr-1.5 h-4 w-4" /> Become a Rider
-            </Link>
-          </Button>
-          <Button asChild variant="ghost" size="sm">
-            <Link to={user ? "/account" : "/account/login"}>
-              <User className="mr-1.5 h-4 w-4" /> {user ? "Account" : "Sign in"}
-            </Link>
+            <a href={RIDER_URL} target="_blank" rel="noopener noreferrer">
+              <Bike className="mr-1.5 h-4 w-4" /> For Riders
+            </a>
           </Button>
           <Button
             asChild
             size="sm"
             className="bg-gradient-cta text-white shadow-soft hover:opacity-95"
           >
-            <Link to="/book">Book Delivery</Link>
+            <a href={CUSTOMER_URL} target="_blank" rel="noopener noreferrer">
+              <ShoppingBag className="mr-1.5 h-4 w-4" /> Order Now
+            </a>
           </Button>
         </div>
         <button
           aria-label="Menu"
-          className={`rounded-lg p-2 md:hidden ${
-            scrolled ? "text-foreground" : "text-foreground"
-          }`}
+          className="rounded-lg p-2 md:hidden text-foreground"
           onClick={() => setOpen((v) => !v)}
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -81,29 +56,16 @@ export function Header() {
       </div>
       {open && (
         <div className="border-t border-border/60 bg-background md:hidden">
-          <div className="flex flex-col gap-1 px-5 py-4">
-            {links.map((l) => (
-              <Link
-                key={l.to}
-                to={l.to}
-                onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
-              >
-                {l.label}
-              </Link>
-            ))}
-            <Button asChild variant="outline" className="mt-2">
-              <Link to="/partner/register" onClick={() => setOpen(false)}>
-                <Bike className="mr-1.5 h-4 w-4" /> Become a Rider
-              </Link>
-            </Button>
+          <div className="flex flex-col gap-2 px-5 py-4">
             <Button asChild variant="outline">
-              <Link to={user ? "/account" : "/account/login"} onClick={() => setOpen(false)}>
-                <User className="mr-1.5 h-4 w-4" /> {user ? "My account" : "Sign in"}
-              </Link>
+              <a href={RIDER_URL} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>
+                <Bike className="mr-1.5 h-4 w-4" /> For Riders
+              </a>
             </Button>
             <Button asChild className="bg-gradient-cta text-white">
-              <Link to="/book" onClick={() => setOpen(false)}>Book Delivery</Link>
+              <a href={CUSTOMER_URL} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>
+                <ShoppingBag className="mr-1.5 h-4 w-4" /> Order Now
+              </a>
             </Button>
           </div>
         </div>

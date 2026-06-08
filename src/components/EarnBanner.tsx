@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/react-router";
 import { Button } from "./ui/button";
 import { Bike, ArrowRight } from "lucide-react";
+
+const RIDER_URL = "https://rider-companion-app-1cb8643e.vercel.app/";
 
 export function EarnBanner() {
   return (
@@ -21,9 +22,9 @@ export function EarnBanner() {
           </div>
         </div>
         <Button asChild size="lg" className="bg-white text-primary-deep hover:bg-white/95">
-          <Link to="/partner/register">
+          <a href={RIDER_URL} target="_blank" rel="noopener noreferrer">
             Become a Delivery Partner <ArrowRight className="ml-1.5 h-4 w-4" />
-          </Link>
+          </a>
         </Button>
       </div>
     </section>
