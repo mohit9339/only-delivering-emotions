@@ -1,7 +1,9 @@
-import { Link } from "@tanstack/react-router";
 import { Button } from "./ui/button";
 import { ArrowRight, Sparkles, Zap, MapPin, Bike } from "lucide-react";
 import heroRider from "@/assets/hero-rider.png";
+
+const CUSTOMER_URL = "https://only-customer.vercel.app/";
+const RIDER_URL = "https://rider-companion-app-1cb8643e.vercel.app/";
 
 export function Hero() {
   return (
@@ -36,13 +38,13 @@ export function Hero() {
               size="lg"
               className="group relative h-12 overflow-hidden rounded-full bg-gradient-to-r from-primary to-primary-deep px-7 text-base font-semibold text-primary-foreground shadow-[0_10px_30px_-10px_oklch(0.62_0.12_180/0.6)] ring-1 ring-primary/30 transition-all hover:shadow-[0_14px_40px_-10px_oklch(0.62_0.12_180/0.75)] hover:-translate-y-0.5"
             >
-              <Link to="/book">
+              <a href={CUSTOMER_URL} target="_blank" rel="noopener noreferrer">
                 <span className="relative z-10 flex items-center">
-                  Book Delivery
+                  Order on ONLY
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </span>
                 <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-              </Link>
+              </a>
             </Button>
             <Button
               asChild
@@ -50,10 +52,10 @@ export function Hero() {
               variant="outline"
               className="group h-12 rounded-full border-2 border-primary/40 bg-white/80 px-7 text-base font-semibold text-primary backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-primary hover:bg-white hover:text-primary-deep hover:shadow-[0_10px_30px_-10px_oklch(0.72_0.13_178/0.5)]"
             >
-              <Link to="/track">
+              <a href={CUSTOMER_URL} target="_blank" rel="noopener noreferrer">
                 <MapPin className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
                 Track Order
-              </Link>
+              </a>
             </Button>
             <Button
               asChild
@@ -61,10 +63,10 @@ export function Hero() {
               variant="outline"
               className="group h-12 rounded-full border-2 border-dashed border-primary/50 bg-transparent px-7 text-base font-semibold text-primary transition-all hover:-translate-y-0.5 hover:border-solid hover:border-primary hover:bg-primary/10 hover:text-primary-deep"
             >
-              <Link to="/partner/register">
+              <a href={RIDER_URL} target="_blank" rel="noopener noreferrer">
                 <Bike className="mr-2 h-4 w-4 transition-transform group-hover:-rotate-12" />
                 Become a Rider
-              </Link>
+              </a>
             </Button>
           </div>
 

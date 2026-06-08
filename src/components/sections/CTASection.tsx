@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
+
+const CUSTOMER_URL = "https://only-customer.vercel.app/";
 
 export function CTASection() {
   return (
@@ -17,12 +18,9 @@ export function CTASection() {
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg" className="bg-white text-primary-deep shadow-soft hover:bg-white/95">
-              <Link to="/book">
+              <a href={CUSTOMER_URL} target="_blank" rel="noopener noreferrer">
                 Start your delivery <ArrowRight className="ml-1.5 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="border-white/40 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white">
-              <Link to="/track">Track an order</Link>
+              </a>
             </Button>
           </div>
         </div>
@@ -30,4 +28,3 @@ export function CTASection() {
     </section>
   );
 }
-
